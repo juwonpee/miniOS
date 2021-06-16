@@ -1,0 +1,31 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stdint.h": "c",
+			"stdbool.h": "c",
+			"types.h": "c",
+			"*.old": "c",
+			"stdint-gcc.h": "c",
+			"paging.h": "c",
+			"memory.h": "c",
+			"os.h": "c",
+			"climits": "c",
+			"cmath": "c",
+			"cstdarg": "c",
+			"cstdio": "c",
+			"cstdlib": "c",
+			"type_traits": "c",
+			"limits": "c",
+			"*.tcc": "c",
+			"cinttypes": "c",
+			"cstdbool": "c",
+			"cstdint": "c",
+			"typeinfo": "c"
+		}
+	}
+}
