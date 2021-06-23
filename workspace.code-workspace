@@ -25,7 +25,14 @@
 			"cinttypes": "c",
 			"cstdbool": "c",
 			"cstdint": "c",
-			"typeinfo": "c"
-		}
+			"typeinfo": "c",
+			"print.h": "c"
+		},
+		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/x86_64-elf-gcc",
+		"C_Cpp.default.intelliSenseMode": "gcc-x64",
+		"C_Cpp.default.includePath": [
+			"$HOME/opt/cross/bin/x86_64-elf/11.1.0/include/**",
+			"${workspaceFolder}/**",
+		]
 	}
 }

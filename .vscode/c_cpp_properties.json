@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}",
-                "/usr/local/i386elfgcc/**"
+                "${HOME}/opt/cross/bin/x86_64-elf/11.1.0/include/"
             ],
             "defines": [],
             "cStandard": "gnu17",

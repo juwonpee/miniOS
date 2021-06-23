@@ -1,4 +1,5 @@
 #include "print.h"
+#include "vga_text_print.h"
 
 graphics_mode get_graphics_mode() {
     return graphics_mode_text;

@@ -1,5 +1,4 @@
-#include "types.h"
-#include "vga_text_print.h"
+#include "../include/types.h"
 
 typedef enum{
     GRAPHICS_VGA_TEXT_80_25,

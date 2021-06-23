@@ -25,7 +25,7 @@ section .text
 
 global start
 start:
-    mov esp, stack_top                          ; Set stack to top of memory
+    mov esp, stack_top                          ; give stack 64Kib of memory
     
     mov eax, cr0
     and eax, 0x9FFFFFF
