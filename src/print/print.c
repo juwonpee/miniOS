@@ -1,5 +1,11 @@
-#include "print.h"
-#include "vga_text_print.h"
+#include "types.h"
+#include "vga_text_print.c"
+
+typedef enum {
+    GRAPHICS_VGA_TEXT_80_25,
+}graphics_mode;
+
+graphics_mode graphics_mode_text;
 
 graphics_mode get_graphics_mode() {
     return graphics_mode_text;

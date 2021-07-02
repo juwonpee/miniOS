@@ -26,13 +26,19 @@
 			"cstdbool": "c",
 			"cstdint": "c",
 			"typeinfo": "c",
-			"print.h": "c"
+			"print.h": "c",
+			"vga_text_print.h": "c",
+			"stddef.h": "c"
 		},
-		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/x86_64-elf-gcc",
-		"C_Cpp.default.intelliSenseMode": "gcc-x64",
+		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i386-elf-gcc",
+		"C_Cpp.default.intelliSenseMode": "gcc-x86",
 		"C_Cpp.default.includePath": [
-			"$HOME/opt/cross/bin/x86_64-elf/11.1.0/include/**",
+			"$HOME/opt/cross/bin/i386-elf/11.1.0/include/**",
 			"${workspaceFolder}/**",
-		]
+			"$[workspaceFolder}"
+		],
+		"C_Cpp.intelliSenseMemoryLimit": 2048,
+		"C_Cpp.default.cStandard": "c17",
+		"C_Cpp.default.cppStandard": "c++20",
 	}
 }
