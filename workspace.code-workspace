@@ -28,12 +28,14 @@
 			"typeinfo": "c",
 			"print.h": "c",
 			"vga_text_print.h": "c",
-			"stddef.h": "c"
+			"stddef.h": "c",
+			"multiboot.h": "c",
+			"string.h": "c"
 		},
-		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i386-elf-gcc",
+		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i686-elf-gcc",
 		"C_Cpp.default.intelliSenseMode": "gcc-x86",
 		"C_Cpp.default.includePath": [
-			"$HOME/opt/cross/bin/i386-elf/11.1.0/include/**",
+			"${HOME}/opt/cross/lib/gcc/i686-elf/11.2.0/include/",
 			"${workspaceFolder}/**",
 			"$[workspaceFolder}"
 		],

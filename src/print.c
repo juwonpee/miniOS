@@ -1,0 +1,54 @@
+
+#include "print.h"
+
+uint16_t COMport;
+
+int serialInit(uint16_t _COMport) {
+    COMport = _COMport;
+    outb(COMport + 1, 0x00);    // Disable all interrupts
+    outb(COMport + 3, 0x80);    // Enable DLAB (set baud rate divisor)
+    outb(COMport + 0, 0x01);    // Set divisor to 1 (lo byte) 115200 baud
+    outb(COMport + 1, 0x00);    //                  (hi byte)
+    outb(COMport + 3, 0x03);    // 8 bits, no parity, one stop bit
+    outb(COMport + 2, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
+    outb(COMport + 4, 0x0B);    // IRQs enabled, RTS/DSR set
+
+    outb(COMport + 4, 0x1E);    // Set in loopback mode, test the serial chip
+    outb(COMport + 0, 0xAE);    // Test serial chip (send byte 0xAE and check if serial returns same byte)
+    if (inb(COMport) != 0xAE) { // If not the same packet as recieved.
+        return 1;
+    }
+    outb(COMport + 4, 0x0F);    // Return port to normal state
+    println("");
+    println("Serial port Initialized");
+    return 0;
+}
+
+char serialInByte() {
+    if (inb(COMport + 5) & 1) {
+        return inb(COMport);
+    }
+    return 0;
+}
+
+void serialOutByte(char character) {
+    outb(COMport, character);
+}
+
+void print(char* string) {
+    int x = 0;
+    while (string[x] != '\0') {
+        if (inb(COMport + 5) & 0x20) {
+            outb(COMport, string[x]);
+        }
+        outb(COMport + 5, string[x]);
+
+        x++;
+    }
+}
+
+void println(char* string) {
+    print(string);
+    print("\n");
+}
+

@@ -1,27 +1,41 @@
-make clean:
-	rm -r build/*
-	mkdir build/object_files
+CC = i386-elf-gcc
+AS = i386-elf-as
+CC_INCLUDE = src/
+CCFLAGS = -O0 -ffreestanding -Wall -Wextra -g
+LDFLAGS = -lgcc -nostdlib -g
+
+SRC_DIR = src/
+ASM_DIR = src/asm/
+OBJECT_DIR = build/object_files/
+OUTPUT = build/isodir/boot/miniOS.bin
+MODULES_DIR = $(wildcard $(SRC_DIR)*.c)
+MODULES = $(notdir $(MODULES_DIR))
+OBJECTS = $(wildcard $(OBJECT_DIR)*.o)
+
 
 
 make bootloader:
-	i386-elf-as src/bootloader/bootloader.s -o build/object_files/bootloader.o
+	$(AS) $(ASM_DIR)bootloader.s -o $(OBJECT_DIR)bootloader.o
 
-make kernel:
-	# i386-elf-gcc -static -w \
-	# 	-I src/include/ \
-	# 	-I src/print/ \
-	# 	-I src/newlib-cygwin \
-	# 	-m32 -c src/kernel.c -o build/object_files/kernel.o -ffreestanding -O2 -Wall -nostdlib -Wextra
+make kernel: bootloader $(MODULES)
+	$(CC) -T src/linker.ld -o $(OUTPUT) -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
+	grub-file --is-x86-multiboot $(OUTPUT)
+	grub-mkrescue -o build/miniOS.iso build/isodir
 
-	i386-elf-gcc -c src/test_kernel.c -o build/object_files/kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
-	i386-elf-gcc -m32 -T src/linker.ld -o build/miniOS.bin -ffreestanding -O2 -nostdlib build/object_files/bootloader.o build/object_files/kernel.o -lgcc
-
-make check_multiboot:
-	grub-file --is-x86-multiboot build/miniOS.bin
-	echo $?
-
+%.c: 
+	$(CC) -I$(CC_INCLUDE) -c $(SRC_DIR)$@ -o $(OBJECT_DIR)$(addsuffix .o,$(basename $@)) $(CCFLAGS)
+	
 make run:
-	qemu-system-x86_64 \
+	qemu-system-i386 \
 		-M q35 -m 256 \
-		-kernel build/miniOS.bin \
-		-vnc :0
+		-cdrom build/miniOS.iso \
+		-nographic 
+
+make run_debug:	
+	qemu-system-i386 \
+		-M q35 -m 256 \
+		-cdrom build/miniOS.iso \
+		-nographic \
+		-S -s
+
+make all: bootloader kernel check_multiboot

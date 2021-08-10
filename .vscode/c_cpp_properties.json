@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}",
-                "${HOME}/opt/cross/bin/i386-elf/11.1.0/include/"
+                "${HOME}/opt/cross/lib/gcc/i686-elf/11.2.0/include/"
             ],
             "defines": [],
             "cStandard": "gnu17",
