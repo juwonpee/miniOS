@@ -27,13 +27,13 @@ make kernel: bootloader $(MODULES)
 	
 make run:
 	qemu-system-i386 \
-		-M q35 -m 256 \
+		-M q35 \
 		-cdrom build/miniOS.iso \
 		-nographic 
 
 make run_debug:	
 	qemu-system-i386 \
-		-M q35 -m 256 \
+		-M q35 \
 		-cdrom build/miniOS.iso \
 		-nographic \
 		-S -s

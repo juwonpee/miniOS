@@ -50,6 +50,46 @@ void memory_init(multiboot_info_t* mbd, uint32_t magic) {
     }
 }
 
-int bbmalloc(uint32_t size) {
-    
+
+// bare bones malloc before virtual memory is set up virtual memory
+// All memory allocations are 4 byte aligned for performance
+void* bcmalloc(uint32_t size) {
+    uint32_t* index = kstart;
+    while(index < ustart) {                                             // Within kernel heap boundaries
+        if ((*index) == 0) {                                            // If block is free
+            uint32_t* blockPointer = index + sizeof(uint32_t);
+            uint32_t blockSize = sizeof(uint32_t);
+            while (blockPointer < ustart) {                             // Not to read out of kernel heap boundaries
+                if ((*blockPointer) == 0) {                             // If block 4byte is empty
+                    if (blockSize >= size) {                            // If block is big enough
+                        (*index) == blockSize;
+                        return index++;
+                    }
+                    else {                                              // Increment to next 4byte
+                        blockPointer++;
+                        blockSize += sizeof(uint32_t);
+                    }
+                }
+                else {
+                    index = blockPointer;                               // Pointer to next block;
+                    break;
+                }
+            }
+        }
+        else {                                                          // Move to next block
+            index += (*index) + sizeof(uint32_t);                                                                    
+        }
+
+    }
+
+    // If out of bounds;
+    println("Out of kernel memory, aborting bbmalloc");
+    return nullptr;
+}
+
+
+// malloc with virtual memory for kernel
+// kernel is always physically mapped for performance
+void* kmalloc(uint32_t size) {
+
 }
