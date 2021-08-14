@@ -5,6 +5,8 @@
 void memory_init(multiboot_info_t* mbd, uint32_t magic) {
     // temp string of size 64
     char tempString[64];
+    // Variables to initialize memory;
+    uint32_t pageNum;
 
     println("Initializing memory");
 
@@ -19,8 +21,7 @@ void memory_init(multiboot_info_t* mbd, uint32_t magic) {
     }
  
     /* Loop through the memory map and display the values */
-    int i;
-    for(i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) 
+    for(uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) 
     {
         multiboot_memory_map_t* mmmt = (multiboot_memory_map_t*) (mbd->mmap_addr + i);
         
@@ -36,18 +37,15 @@ void memory_init(multiboot_info_t* mbd, uint32_t magic) {
         //     mmmt->addr, mmmt->len, mmmt->size, mmmt->type);
  
         if(mmmt->type == MULTIBOOT_MEMORY_AVAILABLE) {
-            /* 
-             * Do something with this memory block!
-             * BE WARNED that some of memory shown as availiable is actually 
-             * actively being used by the kernel! You'll need to take that
-             * into account before writing to memory!
-             */
             print("Memory block: ");
             println(itoa(i, tempString, 10));
+            uint32_t pageNum = 
         }
 
         println("");
     }
+
+    
 }
 
 
@@ -85,6 +83,18 @@ void* bcmalloc(uint32_t size) {
     // If out of bounds;
     println("Out of kernel memory, aborting bbmalloc");
     return nullptr;
+}
+
+void bbfree(void* address) {
+    uint32_t* size = (uint32_t*)(address - sizeof(uint32_t));
+    uint32_t* data = (void*)address;
+    // clear size data
+    address -= sizeof(uint32_t);
+    address = 0;
+    // clear contents of block
+    for (uint32_t blockSize = 0; blockSize < (*size);  blockSize++) {
+        
+    }
 }
 
 

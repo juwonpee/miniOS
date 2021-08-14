@@ -14,6 +14,8 @@
 static uint32_t* kstart = (void*) KHEAP_START;
 static uint32_t* ustart = (void*) UHEAP_START;
 
+
+
 void memory_init(multiboot_info_t* mbd, uint32_t magic);
 
 void* bbmalloc(uint32_t size);

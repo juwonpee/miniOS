@@ -16,7 +16,7 @@
 .section .bss
 .align 16
 stack_bottom:
-.skip 65536 # 64 KiB
+.skip 0x1000000 # 16 MiB
 stack_top:
  
 

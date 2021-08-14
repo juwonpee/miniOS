@@ -27,15 +27,21 @@ make kernel: bootloader $(MODULES)
 	
 make run:
 	qemu-system-i386 \
-		-M q35 \
+		-M q35 -m 1G\
 		-cdrom build/miniOS.iso \
 		-nographic 
 
 make run_debug:	
 	qemu-system-i386 \
-		-M q35 \
+		-M q35 -m 1G\
 		-cdrom build/miniOS.iso \
 		-nographic \
 		-S -s
+
+make run_no_grub:	
+	qemu-system-i386 \
+		-M q35 -m 1G\
+		-kernel build/isodir/boot/miniOS.bin \
+		-nographic 
 
 make all: bootloader kernel check_multiboot
