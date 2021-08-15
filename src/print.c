@@ -3,7 +3,7 @@
 
 uint16_t COMport;
 
-int serialInit(uint16_t _COMport) {
+void serialInit(uint16_t _COMport) {
     COMport = _COMport;
     outb(COMport + 1, 0x00);    // Disable all interrupts
     outb(COMport + 3, 0x80);    // Enable DLAB (set baud rate divisor)
@@ -16,12 +16,12 @@ int serialInit(uint16_t _COMport) {
     outb(COMport + 4, 0x1E);    // Set in loopback mode, test the serial chip
     outb(COMport + 0, 0xAE);    // Test serial chip (send byte 0xAE and check if serial returns same byte)
     if (inb(COMport) != 0xAE) { // If not the same packet as recieved.
-        return 1;
+        return;
     }
     outb(COMport + 4, 0x0F);    // Return port to normal state
     println("");
     println("Serial port Initialized");
-    return 0;
+    return;
 }
 
 char serialInByte() {

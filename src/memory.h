@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdalign.h>
+
 #include "types.h"
 #include "multiboot.h"
 #include "print.h"
@@ -10,9 +12,57 @@
 #define UHEAP_START 0x5000000   // from 64MB for userland code heap paging
 #define nullptr (void*)0x0
 
+typedef struct pageDirectoryCR3_t {
+    union {
+        uint32_t data;
+        struct {
+            uint32_t ignore1:3;
+            uint32_t pageWriteThrough:1;
+            uint32_t pageCacheDisable:1;
+            uint32_t ignore2:7;
+            uint32_t address:20;
+        };
+    };
+} pageDirectoryCR3_t;
 
-static uint32_t* kstart = (void*) KHEAP_START;
-static uint32_t* ustart = (void*) UHEAP_START;
+typedef struct pageDirectory_t {
+    union {
+        uint32_t data;
+        struct {
+            uint32_t present:1;
+            uint32_t RW:1;                                          // Read/Write
+            uint32_t US:1;                                          // User/Supervisor
+            uint32_t pageWriteThrough:1;
+            uint32_t pageCacheDisable:1;
+            uint32_t accessed:1;
+            uint32_t ignore1:1;
+            uint32_t size:1;                                        // 0: 4MB pages, 1: 4KiB pages
+            uint32_t ignore2:4;
+            uint32_t address:20;
+        };
+    };
+} pageDirectory_t;
+
+typedef struct pageTable_t {
+    union {
+        uint32_t data;
+        union{
+            uint32_t present:1;
+            uint32_t RW:1;                                         // Read/Write
+            uint32_t US:1;                                         // User/Supervisor
+            uint32_t writeThrough:1;
+            uint32_t cacheDisable:1;
+            uint32_t accessed:1;
+            uint32_t dirty:1;                                       // 0: 4MB pages, 1: 4KiB pages
+            uint32_t PAT:1;                                         // PAT something i dont know, must stay 0
+            uint32_t ignore:1;
+            uint32_t available:3;
+            uint32_t address:20;
+        };
+    };
+} pageTable_t;
+
+
 
 
 
