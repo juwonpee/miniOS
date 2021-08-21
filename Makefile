@@ -1,8 +1,8 @@
 CC = i686-elf-gcc
 AS = i686-elf-as
 CC_INCLUDE = src/
-CCFLAGS = -ggdb -ffreestanding -Wall -Wextra
-LDFLAGS = -ffreestanding -lgcc -nostdlib
+CCFLAGS = -Og -ggdb -ffreestanding -Wall -Wextra
+LDFLAGS = -Og -ggdb -ffreestanding -lgcc -nostdlib
 
 SRC_DIR = src/
 ASM_DIR = src/asm/

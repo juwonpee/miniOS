@@ -23,24 +23,40 @@
 #include "panic.h"
 
 
-void initCPU() {
-    // Enable cache
-    // Enable FPU unit
-}
 
-
-void kernel_init(multiboot_info_t* mbd, uint32_t magic) {
+void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
+/*-----------------------------------------------------------------------------------------------*/
+/*                                        Physical Memory                                        */
+/*-----------------------------------------------------------------------------------------------*/
     // Serial
     serialInit(COM1);
     // Init memory
-    println("Initializing memory... ");
-    if (!memory_init(mbd, magic)) {
+    print("Initializing memory... ");
+    if (!memory_init(mbd, magic, heapStart)) {
         println("OK");
     }
     else {
-        println ("Error");
+        println ("Error Initializing Memory");
         panic();
     }
+
+/*-----------------------------------------------------------------------------------------------*/
+/*                                         Virtual Memory                                        */
+/*-----------------------------------------------------------------------------------------------*/
+
+    uint32_t* something32 = malloc(sizeof(uint32_t));
+    uint16_t* something16 = malloc(sizeof(uint16_t));
+    uint8_t* something128 = malloc(sizeof(uint8_t) * 128);
+    *something32 = 12345678;
+    *something16 = 12345;
+    for (uint8_t x = 0; x < 128; x++) {
+        something128[x] = x;
+    }
+
+    free(something32);
+    free(something16);
+    free(something128);
+
     
     println("Welcome to miniOS!");
 

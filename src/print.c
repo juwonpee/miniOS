@@ -58,7 +58,7 @@ void serialOutByte(char character) {
 }
 
 char* read(char* buffer) {
-
+    
 }
 
 void print(char* string) {

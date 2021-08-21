@@ -19,7 +19,7 @@
 #include "memory.h"
 
 
-static uint32_t* kstart = (void*) KHEAP_START;
+static uint32_t* kstart;
 static uint32_t* ustart = (void*) UHEAP_START;
 
 pageDirectoryCR3_t pageDirectoryCR3;
@@ -28,7 +28,7 @@ alignas(4096) pageTable_t pageTable[1024][1024];
 
 // bare bones malloc before virtual memory is set up virtual memory
 // All memory allocations are 4 byte aligned for performance
-void* bcmalloc(uint32_t size) {
+void* malloc(uint32_t size) {
     uint32_t* index = kstart;
     while(index < ustart) {                                             // Within kernel heap boundaries
         if ((*index) == 0) {                                            // If block is free
@@ -61,27 +61,24 @@ void* bcmalloc(uint32_t size) {
     return nullptr;
 }
 
-void bbfree(void* address) {
-    uint32_t* size = (uint32_t*)(address - sizeof(uint32_t));
-    uint32_t* data = (void*)address;
+void free(void* address) {
+    uint32_t* tempLong = address - sizeof(uint32_t);
+    uint32_t size = (*tempLong);
     // clear size data
-    address -= sizeof(uint32_t);
-    address = 0;
+    tempLong = 0;
     // clear contents of block
-    for (uint32_t blockSize = 0; blockSize < (*size);  blockSize++) {
-        
+    for (uint32_t* blockIndex = address; blockIndex < size + blockIndex; blockIndex++) {
+        blockIndex = 0;
     }
 }
 
+bool memory_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
+    // TODO: BUG HACK
+    // linker rounds down _end to the nearest 4096 byte, so there is still data at heapStart
+    // skipping to another page to get clear memory
+    heapStart += 4096;
 
-// malloc with virtual memory for kernel
-// kernel is always physically mapped for performance
-void* kmalloc(uint32_t size) {
 
-}
-
-
-bool memory_init(multiboot_info_t* mbd, uint32_t magic) {
     // temp string of size 64
     char tempString[64];
     // Variables to initialize memory;
@@ -89,19 +86,25 @@ bool memory_init(multiboot_info_t* mbd, uint32_t magic) {
     void* usableLastPageAddress;
     void* finalPageAddress;
 
+    // some housekeeping stuff
+    kstart = heapStart;
 
 /*-----------------------------------------------------------------------------------------------*/
 /*                                          Memory Type                                          */
 /*-----------------------------------------------------------------------------------------------*/
     /* Make sure the magic number matches for memory mapping*/
     if(magic != MULTIBOOT_BOOTLOADER_MAGIC) {
-        println("Fatal Error: Invalid magic number!");
+        println("Fatal Error: Invalid magic number");
+        print("Check multiboot magic number: ");
+        println(itoa(magic, tempString, 16));
         panic();
     }
  
     /* Check bit 6 to see if we have a valid memory map */
     if(!(mbd->flags >> 6 & 0x1)) {
         println("Fatal Error: Invalid memory map given by GRUB bootloader");
+        print("Check multiboot mbd flags: ");
+        println(itoa(mbd -> flags, tempString, 16));
         panic();
     }
  
@@ -109,28 +112,14 @@ bool memory_init(multiboot_info_t* mbd, uint32_t magic) {
     for(uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) 
     {
         multiboot_memory_map_t* mmmt = (multiboot_memory_map_t*) (mbd->mmap_addr + i);
-        
-        print("Start Addr : ");
-        println(itoa(mmmt->addr, tempString, 16));
-        print("Length: ");
-        println(itoa(mmmt->len, tempString, 16));
-        print("Size: ");
-        println(itoa(mmmt->size, tempString, 16));
-        print("type: ");
-        println(itoa(mmmt->type, tempString, 16));
-        // printf("Start Addr: %x | Length: %x | Size: %x | Type: %d\n",
-        //     mmmt->addr, mmmt->len, mmmt->size, mmmt->type);
  
         if(mmmt->type == MULTIBOOT_MEMORY_AVAILABLE) {
-            print("Memory block: ");
-            println(itoa(i, tempString, 10));
             // get first and last page addresses 
             usableFirstPageAddress = (void*)mmmt -> addr;
             uint32_t tempLong = mmmt -> addr + mmmt -> len - 1;
             tempLong &= 0xFFFFF000;
             usableLastPageAddress = (void*)tempLong;
         }
-        println("");
         // Iterate through sections and get final page address
         uint32_t tempLong = mmmt -> addr + mmmt -> len - 1;
         tempLong &= 0xFFFFF000;
@@ -145,7 +134,6 @@ bool memory_init(multiboot_info_t* mbd, uint32_t magic) {
     // Initialization of paging structures
     // Map all of the paging structures to memory
     // Only enable kernel space memory for now, enable MMIO and user space later in init process
-    print("Initializing paging... ");
 
     // Init pageDirectoryCR3
     pageDirectoryCR3.address = (uint32_t)&pageDirectory >> 12;
@@ -234,12 +222,15 @@ bool memory_init(multiboot_info_t* mbd, uint32_t magic) {
 // Enable paging
     asm volatile (
         "mov %0, %%eax              \n\t"
-        "mov %%eax, %%cr3           \n\t"
-        "mov %%cr0, %%eax           \n\t"
-        "or $0x80000001, %%eax      \n\t"
-        "mov %%cr0, %%eax"
+        "mov %%eax, %%cr3"
+
         : 
         : "r" (pageDirectoryCR3)
+    );
+    asm volatile (
+        "mov %cr0, %eax           \n\t"
+        "or $0x80000001, %eax      \n\t"
+        "mov %eax, %cr0"
     );
 
     return false;

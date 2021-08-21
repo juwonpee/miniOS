@@ -25,9 +25,7 @@
 #include "print.h"
 #include "string.h"
 
-#define KHEAP_START 0x1000000   // leave 16MB for kernel code (direct paging)
-                                // 64MB for kernel heap data
-#define UHEAP_START 0x5000000   // from 64MB for userland code heap paging
+#define UHEAP_START 0x4000000   // from 64MB for userland code heap paging
 #define nullptr (void*)0x0
 
 typedef struct pageDirectoryCR3_t {
@@ -84,10 +82,7 @@ typedef struct pageTable_t {
 
 
 
-bool memory_init(multiboot_info_t* mbd, uint32_t magic);
+void* malloc(uint32_t size);
+void free(void* address);
+bool memory_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart);
 
-void* bbmalloc(uint32_t size);
-
-void bbfree(void* address);
-
-void* kmalloc(uint32_t size);
