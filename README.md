@@ -8,4 +8,4 @@ qemu-system-x86_64
 make run
 ```
 ## License
-[MIT](https://choosealicense.com/licenses/mit/)
+[Apache 2.0](https://opensource.org/licenses/Apache-2.0)

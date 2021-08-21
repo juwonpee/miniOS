@@ -30,7 +30,8 @@
 			"vga_text_print.h": "c",
 			"stddef.h": "c",
 			"multiboot.h": "c",
-			"string.h": "c"
+			"string.h": "c",
+			"io.h": "c"
 		},
 		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i686-elf-gcc",
 		"C_Cpp.default.intelliSenseMode": "gcc-x86",
