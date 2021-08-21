@@ -1,8 +1,8 @@
-CC = i386-elf-gcc
-AS = i386-elf-as
+CC = i686-elf-gcc
+AS = i686-elf-as
 CC_INCLUDE = src/
-CCFLAGS = -O0 -ffreestanding -Wall -Wextra -g
-LDFLAGS = -lgcc -nostdlib -g
+CCFLAGS = -ggdb -ffreestanding -Wall -Wextra
+LDFLAGS = -ffreestanding -lgcc -nostdlib
 
 SRC_DIR = src/
 ASM_DIR = src/asm/
@@ -18,7 +18,7 @@ make bootloader:
 	$(AS) $(ASM_DIR)bootloader.s -o $(OBJECT_DIR)bootloader.o
 
 make kernel: bootloader $(MODULES)
-	$(CC) -T src/linker.ld -o $(OUTPUT) -ffreestanding -O2 -nostdlib $(OBJECTS) -lgcc
+	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
 	grub-file --is-x86-multiboot $(OUTPUT)
 	grub-mkrescue -o build/miniOS.iso build/isodir
 
@@ -26,20 +26,20 @@ make kernel: bootloader $(MODULES)
 	$(CC) -I$(CC_INCLUDE) -c $(SRC_DIR)$@ -o $(OBJECT_DIR)$(addsuffix .o,$(basename $@)) $(CCFLAGS)
 	
 make run:
-	qemu-system-i386 \
+	qemu-system-x86_64 \
 		-M q35 -m 1G\
-		-cdrom build/miniOS.iso \
+		-kernel build/isodir/boot/miniOS.bin \
 		-nographic 
 
 make run_debug:	
-	qemu-system-i386 \
+	qemu-system-x86_64 \
 		-M q35 -m 1G\
-		-cdrom build/miniOS.iso \
+		-kernel build/isodir/boot/miniOS.bin \
 		-nographic \
 		-S -s
 
 make run_no_grub:	
-	qemu-system-i386 \
+	qemu-system-x86_64 \
 		-M q35 -m 1G\
 		-kernel build/isodir/boot/miniOS.bin \
 		-nographic 

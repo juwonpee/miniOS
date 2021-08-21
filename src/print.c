@@ -16,7 +16,7 @@ void serialInit(uint16_t _COMport) {
     outb(COMport + 4, 0x1E);    // Set in loopback mode, test the serial chip
     outb(COMport + 0, 0xAE);    // Test serial chip (send byte 0xAE and check if serial returns same byte)
     if (inb(COMport) != 0xAE) { // If not the same packet as recieved.
-        return;
+        panic();
     }
     outb(COMport + 4, 0x0F);    // Return port to normal state
     println("");
@@ -32,7 +32,16 @@ char serialInByte() {
 }
 
 void serialOutByte(char character) {
-    outb(COMport, character);
+    while (1) {
+        if ((inb(COMport + 5) & 0x20) == 0) {                           // If output buffer is empty;
+            outb(COMport, character);
+            return;
+        }
+    }
+}
+
+char* read(char* buffer) {
+
 }
 
 void print(char* string) {
@@ -42,7 +51,6 @@ void print(char* string) {
             outb(COMport, string[x]);
         }
         outb(COMport + 5, string[x]);
-
         x++;
     }
 }

@@ -1,0 +1,41 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Kernel using QEMU",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/isodir/boot/miniOS.bin",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            //"preLaunchTask": "Launch QEMU",
+            "miDebuggerPath": "/bin/gdb-multiarch",
+            "miDebuggerArgs": "",
+            "targetArchitecture": "x86",
+            "customLaunchSetupCommands": [
+                {
+                    "text": "target remote localhost:1234",
+                    "description": "Connect to remote QEMU instance"
+                },
+                {
+                    "text": "symbol-file ${workspaceFolder}/build/isodir/boot/miniOS.bin",
+                    "description": "Get kernel symbols"
+                }
+            ]
+        }
+    ]
+}

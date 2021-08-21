@@ -35,7 +35,7 @@
 		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i686-elf-gcc",
 		"C_Cpp.default.intelliSenseMode": "gcc-x86",
 		"C_Cpp.default.includePath": [
-			"${HOME}/opt/cross/lib/gcc/i686-elf/11.2.0/include/",
+			"${HOME}/opt/cross/i686-elf/11.2.0/include/",
 			"${workspaceFolder}/**",
 			"$[workspaceFolder}"
 		],

@@ -36,7 +36,6 @@ void* bcmalloc(uint32_t size) {
         else {                                                          // Move to next block
             index += (*index) + sizeof(uint32_t);                                                                    
         }
-
     }
 
     // If out of bounds;
@@ -64,23 +63,28 @@ void* kmalloc(uint32_t size) {
 }
 
 
-void memory_init(multiboot_info_t* mbd, uint32_t magic) {
+bool memory_init(multiboot_info_t* mbd, uint32_t magic) {
     // temp string of size 64
     char tempString[64];
     // Variables to initialize memory;
-    void* usableStartAddr;
+    void* usableFirstPageAddress;
+    void* usableLastPageAddress;
     void* finalPageAddress;
 
-    println("Initializing memory");
 
+/*-----------------------------------------------------------------------------------------------*/
+/*                                          Memory Type                                          */
+/*-----------------------------------------------------------------------------------------------*/
     /* Make sure the magic number matches for memory mapping*/
     if(magic != MULTIBOOT_BOOTLOADER_MAGIC) {
-        println("invalid magic number!");
+        println("Fatal Error: Invalid magic number!");
+        panic();
     }
  
     /* Check bit 6 to see if we have a valid memory map */
     if(!(mbd->flags >> 6 & 0x1)) {
-        println("invalid memory map given by GRUB bootloader");
+        println("Fatal Error: Invalid memory map given by GRUB bootloader");
+        panic();
     }
  
     /* Loop through the memory map and display the values */
@@ -102,23 +106,106 @@ void memory_init(multiboot_info_t* mbd, uint32_t magic) {
         if(mmmt->type == MULTIBOOT_MEMORY_AVAILABLE) {
             print("Memory block: ");
             println(itoa(i, tempString, 10));
-            
-            usableStartAddr = (void*)mmmt -> addr;
+            // get first and last page addresses 
+            usableFirstPageAddress = (void*)mmmt -> addr;
+            uint32_t tempLong = mmmt -> addr + mmmt -> len - 1;
+            tempLong &= 0xFFFFF000;
+            usableLastPageAddress = (void*)tempLong;
         }
         println("");
-        finalPageAddress = (void*)(mmmt -> addr + mmmt -> len & 0xFFFFF000);
+        // Iterate through sections and get final page address
+        uint32_t tempLong = mmmt -> addr + mmmt -> len - 1;
+        tempLong &= 0xFFFFF000;
+        finalPageAddress = (void*)tempLong;
     }
     
-    println("Initializing paging");
-    print("Final Page Address: ");
-    println(itoa(finalPageAddress, tempString, 16));
+
+/*-----------------------------------------------------------------------------------------------*/
+/*                                          Paging Init                                          */
+/*-----------------------------------------------------------------------------------------------*/
+
+    // Initialization of paging structures
+    // Map all of the paging structures to memory
+    // Only enable kernel space memory for now, enable MMIO and user space later in init process
+    print("Initializing paging... ");
+
     // Init pageDirectoryCR3
-    pageDirectoryCR3.address = (uint32_t)&pageDirectory >>12;
+    pageDirectoryCR3.address = (uint32_t)&pageDirectory >> 12;
     pageDirectoryCR3.pageWriteThrough = 1;
     pageDirectoryCR3.pageCacheDisable = 1;
-    for (int i = 0; i < 1024; i++) {
-        for (int j = 0; j < 1024; i++) {
 
+    // Init pageDirectory
+    void* currentPageIndex;
+    for (int i = 0; i < 1024; i++) {
+        // Separate User space and kernel space tables
+        if ((uint32_t)currentPageIndex < (uint32_t)ustart) {        // Kernel space
+            currentPageIndex = (void*)(i * 1024 * 4096);
+            pageDirectory[i].present = 1;
+            pageDirectory[i].RW = 1;
+            pageDirectory[i].US = 0;
+            pageDirectory[i].pageWriteThrough = 1;
+            pageDirectory[i].pageCacheDisable = 1;
+            pageDirectory[i].size = 1;
+            pageDirectory[i].address = (uint32_t)&pageTable[i] >> 12;
+
+            // Init kernel space page tables
+            for (int j = 0; j < 1024; j++) {
+                currentPageIndex = (void*)(i * 1024 * 4096 + j * 4096);
+                pageTable[i][j].present = 1;
+                pageTable[i][j].RW = 1;
+                pageTable[i][j].US = 0;
+                pageTable[i][j].pageWriteThrough = 1;
+                pageTable[i][j].pageCacheDisable = 1;
+                pageTable[i][j].global = 1;                         // Will set to global cuz lazy to implement TLBs
+                pageTable[i][j].address = ((uint32_t)currentPageIndex) >> 12;
+            }
+        }
+
+        else if (currentPageIndex <= usableLastPageAddress) {       // User space
+            currentPageIndex = (void*)(i * 1024 * 4096);
+            pageDirectory[i].present = 0;
+            pageDirectory[i].RW = 1;
+            pageDirectory[i].US = 1;
+            pageDirectory[i].pageWriteThrough = 1;
+            pageDirectory[i].pageCacheDisable = 1;
+            pageDirectory[i].size = 1;
+            pageDirectory[i].address = (uint32_t)&pageTable[i] >> 12;
+
+            // Init user space page tables
+            for (int j = 0; j < 1024; j++) {
+                currentPageIndex = (void*)(i * 1024 * 4096 + j * 4096);
+                pageTable[i][j].present = 0;
+                pageTable[i][j].RW = 1;
+                pageTable[i][j].US = 1;
+                pageTable[i][j].pageWriteThrough = 1;
+                pageTable[i][j].pageCacheDisable = 1;
+                pageTable[i][j].global = 1;                         // Will set to global cuz lazy to implement TLBs
+                pageTable[i][j].address = ((uint32_t)currentPageIndex) >> 12;
+            }
+        }
+
+        else if (currentPageIndex <= finalPageAddress) {            // MMIO address magic
+            currentPageIndex = (void*)(i * 1024 * 4096);
+            pageDirectory[i].present = 0;
+            pageDirectory[i].RW = 1;
+            pageDirectory[i].US = 0;
+            pageDirectory[i].pageWriteThrough = 1;
+            pageDirectory[i].pageCacheDisable = 1;
+            pageDirectory[i].size = 1;
+            pageDirectory[i].address = (uint32_t)&pageTable[i] >> 12;
+
+            // Init MMIO space page tables
+            for (int j = 0; j < 1024; j++) {
+                currentPageIndex = (void*)(i * 1024 * 4096 + j * 4096);
+                pageTable[i][j].present = 0;
+                pageTable[i][j].RW = 1;
+                pageTable[i][j].US = 0;
+                pageTable[i][j].pageWriteThrough = 1;
+                pageTable[i][j].pageCacheDisable = 1;
+                pageTable[i][j].global = 1;                         // Will set to global cuz lazy to implement TLBs
+                pageTable[i][j].address = ((uint32_t)currentPageIndex) >> 12;
+            }
         }
     }
+    return false;
 }
