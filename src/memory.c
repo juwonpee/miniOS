@@ -30,34 +30,34 @@ alignas(4096) pageTable_t pageTable[1024][1024];
 // All memory allocations are 4 byte aligned for performance
 void* malloc(uint32_t size) {
     uint32_t* index = kstart;
-    while(index < ustart) {                                             // Within kernel heap boundaries
-        if ((*index) == 0) {                                            // If block is free
-            uint32_t* blockPointer = index + sizeof(uint32_t);
-            uint32_t blockSize = sizeof(uint32_t);
-            while (blockPointer < ustart) {                             // Not to read out of kernel heap boundaries
-                if ((*blockPointer) == 0) {                             // If block 4byte is empty
-                    if (blockSize >= size) {                            // If block is big enough
-                        (*index) == blockSize;
-                        return index++;
+    while ((uint32_t) index < (uint32_t) ustart) {
+        if ((*index) == 0) {
+            uint32_t* blockIndex = index + 1;
+            uint32_t blockSize = 0;
+            while ((uint32_t) blockIndex < (uint32_t)ustart) {
+                if ((*blockIndex) == 0) {
+                    blockSize += 4;
+                    if (size <= blockSize) {
+                        (*index) = size;
+                        return (void*)index + 1;
                     }
-                    else {                                              // Increment to next 4byte
-                        blockPointer++;
-                        blockSize += sizeof(uint32_t);
+                    else {
+                        blockIndex += 1;
                     }
                 }
                 else {
-                    index = blockPointer;                               // Pointer to next block;
-                    break;
+                    index += blockSize + 4;
                 }
             }
+            
         }
-        else {                                                          // Move to next block
-            index += (*index) + sizeof(uint32_t);                                                                    
+        else {
+            index += 1;
         }
     }
 
     // If out of bounds;
-    println("Out of kernel memory, aborting bbmalloc");
+    println("Out of kernel memory, aborting malloc");
     return nullptr;
 }
 
