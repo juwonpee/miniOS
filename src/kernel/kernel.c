@@ -24,7 +24,7 @@
 
 
 
-void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
+kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
@@ -43,21 +43,6 @@ void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
-
-    uint32_t* something32 = malloc(sizeof(uint32_t));
-    *something32 = 0x12345678;
-    uint16_t* something16 = malloc(sizeof(uint16_t));
-    *something16 = 0x1234;
-    uint8_t* something8 = malloc(sizeof(uint8_t));
-    *something8 = 0x12;
-    uint8_t* something128 = malloc(sizeof(uint8_t) * 128);
-    for (uint8_t x = 0; x < 128; x++) {
-        something128[x] = x;
-    }
-
-    free(something32);
-    free(something16);
-    free(something128);
 
     
     println("Welcome to miniOS!");

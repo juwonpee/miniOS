@@ -19,6 +19,6 @@
 #pragma once
 
 #include "types.h"
-#include "print.h"
+#include "driver/print.h"
 
 void panic();

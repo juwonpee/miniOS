@@ -15,25 +15,32 @@
 */
 
 
-
 #pragma once
-
 #include "types.h"
-#include "io.h"
-#include "panic.h"
 
-#define COM1 0x3F8
-#define COM2 0x2F8
-#define COM3 0x3E8
-#define COM4 0x2E8
+#define PIC1		0x20		/* IO base address for master PIC */
+#define PIC2		0xA0		/* IO base address for slave PIC */
+#define PIC1_COMMAND	PIC1
+#define PIC1_DATA	(PIC1+1)
+#define PIC2_COMMAND	PIC2
+#define PIC2_DATA	(PIC2+1)
 
-void serialInit(uint16_t _COMport);
+typedef struct IDTDescriptor_t {
+	union {
+		uint64_t data;
+		struct {
+			uint64_t offset1:16;
+			uint64_t selector:16;
+			uint64_t ignore1:8;
+			uint64_t gate:4;
+			uint64_t segment:1;
+			uint64_t privilege:2;
+			uint64_t present:1;
+			uint64_t offset2:16;
+		};
+	};
+} __attribute__ ((packed)) IDTDescriptor_t;
 
-char serialInByte();
-
-void printByte(char character);
-
-void print(char* string);
-
-void println(char* string);
-
+bool idt_init();
+bool pic_init();
+bool interrupt_init();

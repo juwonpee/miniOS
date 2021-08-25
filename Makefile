@@ -1,47 +1,48 @@
 CC = i686-elf-gcc
 AS = i686-elf-as
-CC_INCLUDE = src/
-CCFLAGS = -Og -ggdb -ffreestanding -Wall -Wextra
-LDFLAGS = -Og -ggdb -ffreestanding -lgcc -nostdlib
+CC_INCLUDE = -Isrc/ -Isrc/include/ -Isrc/kernel -Isrc/driver
+CCFLAGS = -Og -ggdb -ffreestanding -Wall -Wextra -lgcc -nostdlib
+LDFLAGS = -
 
-SRC_DIR = src/
-ASM_DIR = src/asm/
-OBJECT_DIR = build/object_files/
+SRC_DIR = src
+OBJ_DIR = build/object_files
+
+BOOTLOADER_SOURCE = $(wildcard $(SRC_DIR)/bootloader/*.s)
+BOOTLOADER_OBJ = $(OBJ_DIR)/bootloader.o
+C_SOURCES = $(wildcard $(SRC_DIR)/driver/*.c $(SRC_DIR)/include/*.c $(SRC_DIR)/kernel/*.c)
+C_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
+OBJECTS = $(wildcard $(OBJ_DIR)/*.o)
 OUTPUT = build/isodir/boot/miniOS.bin
-MODULES_DIR = $(wildcard $(SRC_DIR)*.c)
-MODULES = $(notdir $(MODULES_DIR))
-OBJECTS = $(wildcard $(OBJECT_DIR)*.o)
 
 
 
-make bootloader:
-	$(AS) $(ASM_DIR)bootloader.s -o $(OBJECT_DIR)bootloader.o
-
-make kernel: bootloader $(MODULES)
-	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
-	grub-file --is-x86-multiboot $(OUTPUT)
+kernel:
+	$(CC) $(CC_INCLUDE) -T src/linker.ld -o $(OUTPUT) $(C_SOURCES) $(CCFLAGS)
 	grub-mkrescue -o build/miniOS.iso build/isodir
 
-%.c: 
-	$(CC) -I$(CC_INCLUDE) -c $(SRC_DIR)$@ -o $(OBJECT_DIR)$(addsuffix .o,$(basename $@)) $(CCFLAGS)
-	
-make run:
+bootloader:
+	$(AS) $(BOOTLOADER_SOURCE) -o $(BOOTLOADER_OBJ)
+
+check_multiboot:
+	grub-file --is-x86-multiboot $(OUTPUT)
+
+run:
 	qemu-system-x86_64 \
 		-M q35 -m 1G\
 		-kernel build/isodir/boot/miniOS.bin \
 		-nographic 
 
-make run_debug:	
+run_debug:	
 	qemu-system-x86_64 \
 		-M q35 -m 1G\
 		-kernel build/isodir/boot/miniOS.bin \
 		-nographic \
 		-S -s
 
-make run_no_grub:	
+run_no_grub:	
 	qemu-system-x86_64 \
 		-M q35 -m 1G\
 		-kernel build/isodir/boot/miniOS.bin \
 		-nographic 
 
-make all: bootloader kernel check_multiboot
+all: bootloader kernel check_multiboot

@@ -54,6 +54,9 @@ void serialOutByte(char character) {
             outb(COMport, character);
             return;
         }
+        else {
+            io_wait();
+        }
     }
 }
 

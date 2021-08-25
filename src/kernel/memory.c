@@ -19,12 +19,12 @@
 #include "memory.h"
 
 
-static uint32_t* kstart;
+uint32_t* kstart;
 static uint32_t* ustart = (void*) UHEAP_START;
 
-pageDirectoryCR3_t pageDirectoryCR3;
-alignas(4096) pageDirectory_t pageDirectory[1024];
-alignas(4096) pageTable_t pageTable[1024][1024];
+volatile pageDirectoryCR3_t pageDirectoryCR3;
+alignas(4096) volatile pageDirectory_t pageDirectory[1024];
+alignas(4096) volatile pageTable_t pageTable[1024][1024];
 
 // bare bones malloc before virtual memory is set up virtual memory
 // All memory allocations are 4 byte aligned for performance
@@ -39,14 +39,15 @@ void* malloc(uint32_t size) {
                     blockSize += 4;
                     if (size <= blockSize) {
                         (*index) = size;
-                        return (void*)index + 1;
+                        return (void*)(index + 1);
                     }
                     else {
                         blockIndex += 1;
                     }
                 }
                 else {
-                    index += blockSize + 4;
+                    index += blockSize + 1;
+                    break;
                 }
             }
             
@@ -62,13 +63,15 @@ void* malloc(uint32_t size) {
 }
 
 void free(void* address) {
-    uint32_t* tempLong = address - sizeof(uint32_t);
-    uint32_t size = (*tempLong);
-    // clear size data
-    tempLong = 0;
-    // clear contents of block
-    for (uint32_t* blockIndex = address; blockIndex < size + blockIndex; blockIndex++) {
-        blockIndex = 0;
+    uint32_t* tempIndex = (uint32_t)(address - 4);
+    uint32_t tempSize = (*tempIndex);
+    
+    // clear out size data
+    (*tempIndex) = 0;
+    // clear out rest of block
+    for (uint32_t size = 0; size < tempSize; size+=4) {
+        tempIndex = address + size;
+        (*tempIndex) = 0;
     }
 }
 

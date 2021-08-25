@@ -31,14 +31,14 @@
 			"stddef.h": "c",
 			"multiboot.h": "c",
 			"string.h": "c",
-			"io.h": "c"
+			"io.h": "c",
+			"stdalign.h": "c"
 		},
 		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i686-elf-gcc",
 		"C_Cpp.default.intelliSenseMode": "gcc-x86",
 		"C_Cpp.default.includePath": [
 			"${HOME}/opt/cross/i686-elf/11.2.0/include/",
-			"${workspaceFolder}/**",
-			"$[workspaceFolder}"
+			"${workspaceFolder}/src/**",
 		],
 		"C_Cpp.intelliSenseMemoryLimit": 2048,
 		"C_Cpp.default.cStandard": "c17",
