@@ -24,7 +24,7 @@
 
 
 
-kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
+void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/

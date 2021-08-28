@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+// Only the bootloader is written in GAS assembly as i copied it from osdev
+
 
 
 /* Declare constants for the multiboot header. */

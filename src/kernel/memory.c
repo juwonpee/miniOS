@@ -26,8 +26,6 @@ volatile pageDirectoryCR3_t pageDirectoryCR3;
 alignas(4096) volatile pageDirectory_t pageDirectory[1024];
 alignas(4096) volatile pageTable_t pageTable[1024][1024];
 
-// bare bones malloc before virtual memory is set up virtual memory
-// All memory allocations are 4 byte aligned for performance
 void* malloc(uint32_t size) {
     uint32_t* index = kstart;
     while ((uint32_t) index < (uint32_t) ustart) {

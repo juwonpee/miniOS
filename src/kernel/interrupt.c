@@ -17,3 +17,7 @@
 
 
 #include "interrupt.h"
+
+alignas(16) IDT_t IDT[256];                                       // Aligned for performance, not required
+IDTR_t IDTR;
+
