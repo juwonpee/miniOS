@@ -49,9 +49,9 @@ typedef struct IDTR_t {
 	uint32_t base;
 } __attribute__ ((packed)) IDTR_t;
 
-bool idt_init();
-bool pic_init();
-bool interrupt_init();
+void idt_init();
+void pic_init();
+void interrupt_init();
 
 
 extern void isr000();

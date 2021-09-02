@@ -21,3 +21,6 @@
 alignas(16) IDT_t IDT[256];                                       // Aligned for performance, not required
 IDTR_t IDTR;
 
+void idt_init() {
+  IDTR.base = (uint32_t)&IDT;
+}
