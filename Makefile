@@ -14,7 +14,7 @@ OBJECTS = $(BOOTLOADER_OBJ) $(C_OBJ)
 OUTPUT = build/isodir/boot/miniOS.bin
 
 
-all: bootloader kernel clear_objects image check_multiboot
+all:  bootloader kernel clear image check_multiboot
 
 bootloader:
 	$(AS) $(BOOTLOADER_SOURCE) -o $(BOOTLOADER_OBJ)
@@ -22,8 +22,8 @@ bootloader:
 kernel: $(C_OBJ)
 	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
 
-clear_objects:
-	find . -name "*.o" | xargs rm 
+clear:
+	find . -name "*.o" | xargs -r rm 
 
 image:
 	grub-mkrescue -o build/miniOS.iso build/isodir

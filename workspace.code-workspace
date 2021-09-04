@@ -32,7 +32,8 @@
 			"multiboot.h": "c",
 			"string.h": "c",
 			"io.h": "c",
-			"stdalign.h": "c"
+			"stdalign.h": "c",
+			"panic.h": "c"
 		},
 		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i686-elf-gcc",
 		"C_Cpp.default.intelliSenseMode": "gcc-x86",

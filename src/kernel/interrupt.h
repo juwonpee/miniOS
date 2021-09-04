@@ -20,13 +20,15 @@
 #include <stdalign.h>
 
 #include "types.h"
+#include "print.h"
+#include "panic.h"
 
-#define PIC1		0x20		/* IO base address for master PIC */
-#define PIC2		0xA0		/* IO base address for slave PIC */
-#define PIC1_COMMAND	PIC1
-#define PIC1_DATA	(PIC1+1)
-#define PIC2_COMMAND	PIC2
-#define PIC2_DATA	(PIC2+1)
+#define PIC1					0x20		/* IO base address for master PIC */
+#define PIC2					0xA0		/* IO base address for slave PIC */
+#define PIC1_COMMAND			PIC1
+#define PIC1_DATA				(PIC1+1)
+#define PIC2_COMMAND			PIC2
+#define PIC2_DATA				(PIC2+1)
 
 typedef struct IDT_t {
 	union {
@@ -34,7 +36,7 @@ typedef struct IDT_t {
 		struct {
 			uint64_t offset1:16;
 			uint64_t selector:16;
-			uint64_t ignore1:8;
+			uint64_t ignore:8;
 			uint64_t gate:4;
 			uint64_t segment:1;
 			uint64_t privilege:2;
@@ -49,93 +51,97 @@ typedef struct IDTR_t {
 	uint32_t base;
 } __attribute__ ((packed)) IDTR_t;
 
-bool idt_init();
-bool pic_init();
+void interrupt_idt_init();
+void interrupt_pic_init();
+void interrupt_enable();
+void interrupt_disable();
 bool interrupt_init();
 
 
-extern void isr000();
-extern void isr001();
-extern void isr002();
-extern void isr003();
-extern void isr004();
-extern void isr005();
-extern void isr006();
-extern void isr007();
-extern void isr008();
-extern void isr009();
-extern void isr010();
-extern void isr011();
-extern void isr012();
-extern void isr013();
-extern void isr014();
-extern void isr015();
-extern void isr016();
-extern void isr017();
-extern void isr018();
-extern void isr019();
-extern void isr020();
-extern void isr021();
-extern void isr022();
-extern void isr023();
-extern void isr024();
-extern void isr025();
-extern void isr026();
-extern void isr027();
-extern void isr028();
-extern void isr029();
-extern void isr030();
-extern void isr031();
-extern void isr032();
-extern void isr033();
-extern void isr034();
-extern void isr035();
-extern void isr036();
-extern void isr037();
-extern void isr038();
-extern void isr039();
-extern void isr040();
-extern void isr041();
-extern void isr042();
-extern void isr043();
-extern void isr044();
-extern void isr045();
-extern void isr046();
-extern void isr047();
-extern void isr048();
-extern void isr049();
-extern void isr050();
-extern void isr051();
-extern void isr052();
-extern void isr053();
-extern void isr054();
-extern void isr055();
-extern void isr056();
-extern void isr057();
-extern void isr058();
-extern void isr059();
-extern void isr060();
-extern void isr061();
-extern void isr062();
-extern void isr063();
-extern void isr064();
-extern void isr065();
-extern void isr066();
-extern void isr067();
-extern void isr068();
-extern void isr069();
-extern void isr070();
-extern void isr071();
-extern void isr072();
-extern void isr073();
-extern void isr074();
-extern void isr075();
-extern void isr076();
-extern void isr077();
-extern void isr078();
-extern void isr079();
-extern void isr080();
-extern void isr081();
-extern void isr082();
-extern void isr083();
-extern void isr084();
+// void isr000();
+// void isr001();
+// void isr002();
+// void isr003();
+// void isr004();
+// void isr005();
+// void isr006();
+// void isr007();
+// void isr008();
+// void isr009();
+// void isr010();
+// void isr011();
+// void isr012();
+// void isr013();
+// void isr014();
+// void isr015();
+// void isr016();
+// void isr017();
+// void isr018();
+// void isr019();
+// void isr020();
+// void isr021();
+// void isr022();
+// void isr023();
+// void isr024();
+// void isr025();
+// void isr026();
+// void isr027();
+// void isr028();
+// void isr029();
+// void isr030();
+// void isr031();
+
+void interrupt_isr032(void);
+
+// void isr033();
+// void isr034();
+// void isr035();
+// void isr036();
+// void isr037();
+// void isr038();
+// void isr039();
+// void isr040();
+// void isr041();
+// void isr042();
+// void isr043();
+// void isr044();
+// void isr045();
+// void isr046();
+// void isr047();
+// void isr048();
+// void isr049();
+// void isr050();
+// void isr051();
+// void isr052();
+// void isr053();
+// void isr054();
+// void isr055();
+// void isr056();
+// void isr057();
+// void isr058();
+// void isr059();
+// void isr060();
+// void isr061();
+// void isr062();
+// void isr063();
+// void isr064();
+// void isr065();
+// void isr066();
+// void isr067();
+// void isr068();
+// void isr069();
+// void isr070();
+// void isr071();
+// void isr072();
+// void isr073();
+// void isr074();
+// void isr075();
+// void isr076();
+// void isr077();
+// void isr078();
+// void isr079();
+// void isr080();
+// void isr081();
+// void isr082();
+// void isr083();
+// void isr084();

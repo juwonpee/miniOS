@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "string.h"
 #include "panic.h"
+#include "interrupt.h"
 
 
 
@@ -43,7 +44,9 @@ void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
-
+    interrupt_init();
+    println("interrupts");
+    asm ("int $0x20");
     
     println("Welcome to miniOS!");
 
