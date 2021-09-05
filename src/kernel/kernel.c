@@ -25,7 +25,8 @@
 
 
 
-void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
+void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart, uint16_t cs) {
+    char tempString[64];
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
@@ -44,7 +45,7 @@ void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
-    interrupt_init();
+    interrupt_init(cs);
     println("interrupts");
     asm ("int $0x20");
     

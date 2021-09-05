@@ -47,6 +47,8 @@ _start:
 
 	mov $stack_top, %esp
   mov $_end, %ecx
+  mov %cs, %dx
+  push %dx
   push %ecx
 	push %eax
 	push %ebx

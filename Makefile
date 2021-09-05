@@ -13,13 +13,16 @@ C_OBJ = $(C_SOURCES:.c=.o)
 OBJECTS = $(BOOTLOADER_OBJ) $(C_OBJ)
 OUTPUT = build/isodir/boot/miniOS.bin
 
+QEMU = qemu-system-i386 -cpu pentium
 
-all:  bootloader kernel clear image check_multiboot
+all: kernel clear image check_multiboot
+
+binary: kernel clear
 
 bootloader:
 	$(AS) $(BOOTLOADER_SOURCE) -o $(BOOTLOADER_OBJ)
 
-kernel: $(C_OBJ)
+kernel: bootloader $(C_OBJ)
 	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
 
 clear:
@@ -28,8 +31,12 @@ clear:
 image:
 	grub-mkrescue -o build/miniOS.iso build/isodir
 
+
 %.o: %.c
 	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS)
+# special compiler command for interrupts, 80387 instructions not allowed in interrupt functions
+$(SRC_DIR)/kernel/interrupt.o: $(SRC_DIR)/kernel/interrupt.c
+	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS) -mgeneral-regs-only
 
 
 check_multiboot:
@@ -38,21 +45,27 @@ check_multiboot:
 	
 
 run:
-	qemu-system-x86_64 \
-		-M q35 -m 1G\
-		-kernel build/isodir/boot/miniOS.bin \
+	$(QEMU) \
+		-m 1G\
+		-hda build/miniOS.iso \
 		-nographic 
 
 run_debug:	
-	qemu-system-x86_64 \
-		-M q35 -m 1G\
-		-kernel build/isodir/boot/miniOS.bin \
+	$(QEMU) \
+		-m 1G\
+		-hda build/miniOS.iso \
 		-nographic \
 		-S -s
 
 run_no_grub:	
-	qemu-system-x86_64 \
-		-M q35 -m 1G\
+	$(QEMU) \
+		-m 1G\
 		-kernel build/isodir/boot/miniOS.bin \
 		-nographic 
 
+run_no_grub_debug:	
+	$(QEMU) \
+		-m 1G\
+		-kernel build/isodir/boot/miniOS.bin \
+		-nographic \
+		-S -s
