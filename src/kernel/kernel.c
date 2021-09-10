@@ -50,7 +50,9 @@ void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart, uint16_
     asm ("int $0x20");
     
     println("Welcome to miniOS!");
-
+    while (1) {
+        println("stop");
+    }
 }
 
 

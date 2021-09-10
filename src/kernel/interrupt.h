@@ -14,6 +14,59 @@
    limitations under the License.
 */
 
+/*
+Interrupts
+0~31:			CPU reserved interrupts
+32:				Syscall Entry
+	eax		ebx		ecx											edx																				Explanation
+EAX=0: File operations
+	0		0		Pointer to file string (4096 byte length)	Return operation status															Request file locking & opening
+																	0x0: Success
+																	0x1: File does not exist
+																	0x2: File is locked
+																	0x3: File is unlockable (shared)
+
+			1		Pointer to file string						Return file flags																Get file status
+																	0b: Unlocked/Locked						
+																	1b: Lockable/Unlockable					
+																	2b: Permission to read
+																	3b: Permission to write
+
+			2		Pointer to file string						Return operation status															Request file unlocking
+																	0x0: success							
+																	0x1: failed								
+
+			3		Pointer to file string						Return operation status															Request file creation
+																	0x0: Success
+																	0x1: File already exists
+																	0x2: Illegal characters in filename
+																	0x3: Filename too long
+																	0x4: Directory does not exist
+																	0x5: No permission to write in directory
+			
+			4		Pointer to file string						Return operation status															Request file deletion
+																	0x0: Success
+																	0x1: File is locked
+																	0x2: File does not exist
+																	0x3: No permission to write to file
+																	0x4: No permission to write to directory
+
+			5		Pointer to directory string 				Return operation status															Request directory creation
+																	0x0: Success
+																	0x1: Directory already exists
+																	0x1: Subdirectory does not exist
+																	0x2: No permission to write to directory				
+			
+			6 		Pointer to directory string					Return operation status																	Request directory deletion
+																	0x0: Success
+																	0x1: Directory does not exist
+																	0x2: File/Files in directory are locked
+																	0x3: No permission to write to directory	
+EAX=1: 															
+	4		Return PID																															Get PID
+	5		Pointer to char								Return operation status						Return error code
+*/
+
 
 #pragma once
 
@@ -30,19 +83,20 @@
 #define PIC2_COMMAND			PIC2
 #define PIC2_DATA				(PIC2+1)
 
+#define IDT_FLAGS_TASK			0b10000101
+#define IDT_FLAGS_INTERRUPT 	0b10001110
+#define IDT_FLAGS_TRAP			0b10001111
+
 typedef struct IDT_t {
 	union {
 		uint64_t data;
 		struct {
-			uint64_t offset1:16;
-			uint64_t selector:16;
-			uint64_t ignore:8;
-			uint64_t gate:4;
-			uint64_t segment:1;
-			uint64_t privilege:2;
-			uint64_t present:1;
-			uint64_t offset2:16;
-		};
+			uint16_t offset1;
+			uint16_t selector;
+			uint8_t ignore;
+			uint8_t flags; 
+			uint16_t offset2:16;
+		} __attribute ((packed));
 	};
 } __attribute__ ((packed)) IDT_t;
 
@@ -95,55 +149,55 @@ bool interrupt_init(uint16_t cs);
 
 __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFrame);
 
-// __attribute__ ((interrupt)) void isr033(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr034(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr035(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr036(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr037(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr038(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr039(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr040(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr041(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr042(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr043(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr044(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr045(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr046(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr047(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr048(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr049(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr050(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr051(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr052(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr053(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr054(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr055(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr056(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr057(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr058(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr059(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr060(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr061(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr062(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr063(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr064(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr065(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr066(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr067(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr068(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr069(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr070(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr071(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr072(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr073(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr074(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr075(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr076(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr077(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr078(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr079(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr080(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr081(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr082(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr083(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr084(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq033(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq034(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq035(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq036(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq037(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq038(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq039(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq040(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq041(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq042(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq043(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq044(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq045(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq046(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq047(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq048(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq049(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq050(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq051(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq052(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq053(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq054(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq055(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq056(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq057(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq058(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq059(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq060(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq061(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq062(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq063(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq064(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq065(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq066(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq067(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq068(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq069(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq070(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq071(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq072(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq073(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq074(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq075(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq076(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq077(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq078(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq079(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq080(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq081(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq082(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq083(interruptFrame_t* interruptFrame);
+// __attribute__ ((interrupt)) void irq084(interruptFrame_t* interruptFrame);

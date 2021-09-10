@@ -22,24 +22,21 @@ alignas(16) IDT_t IDT[256];                                       // Aligned for
 IDTR_t IDTR;
 
 void interrupt_idt_init(uint16_t cs) {
-	IDTR.base = (uint32_t)&IDT;
 	IDTR.limit = 256 * sizeof(IDT_t) - 1;
+	IDTR.base = (uint32_t)&IDT;
 
 	// ISR address 0x00~0x1F are CPU reserved in protected mode
-	IDT[32].offset1 = (uint16_t)&interrupt_irq032 & 0xFFFF;
+	IDT[32].offset1 = (uint32_t)&interrupt_irq032 & 0xFFFF;
 	IDT[32].selector = cs;
 	IDT[32].ignore = 0;
-	IDT[32].gate = 0xE;
-	IDT[32].segment = 0;
-	IDT[32].privilege = 0;
-	IDT[32].present = 1;
-	IDT[32].offset2 = (uint16_t)&interrupt_irq032 >> 16;
+	IDT[32].flags = IDT_FLAGS_INTERRUPT;
+	IDT[32].offset2 = (uint32_t)&interrupt_irq032 >> 16;
 	
 	// Load IDTR into CPU
 	asm volatile (
 		"lidt %0"
 		:
-		: "memory"(IDTR)
+		: "m"(IDTR)
 	);
 }
 
