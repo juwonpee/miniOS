@@ -122,7 +122,7 @@ bool interrupt_init(uint16_t cs);
 // __attribute__ ((interrupt)) void isr005(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void isr006(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void isr007(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void isr008(interruptFrame_t* interruptFrame);
+__attribute__ ((interrupt)) void interrupt_isr008(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void isr009(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void isr010(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void isr011(interruptFrame_t* interruptFrame);
@@ -146,9 +146,7 @@ bool interrupt_init(uint16_t cs);
 // __attribute__ ((interrupt)) void isr029(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void isr030(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void isr031(interruptFrame_t* interruptFrame);
-
 __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFrame);
-
 // __attribute__ ((interrupt)) void irq033(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void irq034(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void irq035(interruptFrame_t* interruptFrame);

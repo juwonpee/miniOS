@@ -26,6 +26,12 @@ void interrupt_idt_init(uint16_t cs) {
 	IDTR.base = (uint32_t)&IDT;
 
 	// ISR address 0x00~0x1F are CPU reserved in protected mode
+	IDT[8].offset1 = (uint32_t)&interrupt_isr008 & 0xFFFF;
+	IDT[8].selector = cs;
+	IDT[8].ignore = 0;
+	IDT[8].flags = IDT_FLAGS_TRAP;
+	IDT[8].offset2 = (uint32_t)&interrupt_isr008 >> 16;
+
 	IDT[32].offset1 = (uint32_t)&interrupt_irq032 & 0xFFFF;
 	IDT[32].selector = cs;
 	IDT[32].ignore = 0;
@@ -41,6 +47,7 @@ void interrupt_idt_init(uint16_t cs) {
 }
 
 void interrupt_pic_init() {
+	
 }
 
 void interrupt_enable() {
@@ -59,7 +66,11 @@ bool interrupt_init(uint16_t cs) {
 	return false;
 }
 
+__attribute__ ((interrupt)) void interrupt_isr008(interruptFrame_t* interruptFrame) {
+	println("Interrupt: 008");
+}
+
 __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFrame) {
 	// test interrupt
-	println("Interrupt!");
+	println("Interrupt: 032");
 }
