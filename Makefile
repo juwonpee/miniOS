@@ -1,7 +1,7 @@
 CC = i686-elf-gcc
 AS = i686-elf-as
 CC_INCLUDE = -Isrc/ -Isrc/include/ -Isrc/kernel -Isrc/driver
-CCFLAGS = -Og -ggdb -ffreestanding -Wall -Wextra -g
+CCFLAGS = -Og -ggdb -ffreestanding -Wall -g
 LDFLAGS = -lgcc -nostdlib
 
 SRC_DIR = src
@@ -34,7 +34,7 @@ image:
 
 %.o: %.c
 	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS)
-# special compiler command for interrupts, 80387 instructions not allowed in interrupt functions
+# special compiler command for interrupt.c, 80387 instructions not allowed in interrupt functions
 $(SRC_DIR)/kernel/interrupt.o: $(SRC_DIR)/kernel/interrupt.c
 	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS) -mgeneral-regs-only
 

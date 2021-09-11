@@ -45,13 +45,14 @@ void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart, uint16_
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
-    interrupt_init(cs);
-    println("interrupts");
-    asm ("int $32");
+    print("Initializing Interrupts... ");
+    if (!interrupt_init(cs)) {
+        println("OK");
+    }
     
     println("Welcome to miniOS!");
-    while (1) {
-        println("stop");
+    while(1) {
+        
     }
 }
 

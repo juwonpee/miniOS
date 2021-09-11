@@ -15,27 +15,19 @@
 */
 
 
-
 #pragma once
 
 #include "types.h"
-#include "driver/io.h"
-#include "kernel/panic.h"
+#include "io.h"
 
-#define COM1 0x3F8
-#define COM2 0x2F8
-#define COM3 0x3E8
-#define COM4 0x2E8
+#define PIT_DIVISOR                 65535
+#define PIT_MAX_DIVISOR             65535
+#define PIT_BASE_FREQUENCY          1193182
 
-void serialInit(uint16_t _COMport);
+#define PIT_COMMAND                 0x40
 
-char serialInByte();
 
-void serial_interval_read();
+int8_t pit_init();
 
-char* read(char* buffer);
-
-void print(char* string);
-
-void println(char* string);
-
+bool pit_increment_time();
+uint64_t pit_get_time_since_boot();

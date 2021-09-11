@@ -19,6 +19,8 @@
 #include "print.h"
 
 uint16_t COMport;
+char charBuffer[256];
+uint8_t charBuffer_index;
 
 void serialInit(uint16_t _COMport) {
     COMport = _COMport;
@@ -60,8 +62,23 @@ void serialOutByte(char character) {
     }
 }
 
+void serial_interval_read() {
+    char tempChar = serialInByte();
+    if (tempChar != 0) {
+        charBuffer[charBuffer_index] = tempChar;
+        charBuffer_index++;
+    }
+}
+
 char* read(char* buffer) {
-    
+    buffer = charBuffer;
+    if (charBuffer_index == 255) {
+        buffer[255] = '\0';
+    }
+    else {
+        buffer[charBuffer_index] = '\0';
+    }
+    charBuffer_index = 0;
 }
 
 void print(char* string) {

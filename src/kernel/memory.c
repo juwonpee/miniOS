@@ -61,7 +61,7 @@ void* malloc(uint32_t size) {
 }
 
 void free(void* address) {
-    uint32_t* tempIndex = (uint32_t)(address - 4);
+    uint32_t* tempIndex = (uint32_t*)(address - 4);
     uint32_t tempSize = (*tempIndex);
     
     // clear out size data
