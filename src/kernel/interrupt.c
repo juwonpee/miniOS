@@ -163,8 +163,12 @@ void interrupt_pic_init(uint8_t offset1, uint8_t offset2) {
 	outb(PIC2_DATA, ICW4_8086);
 	io_wait();
  
-	outb(PIC1_DATA, a1);   // restore saved masks.
-	outb(PIC2_DATA, a2);
+	// outb(PIC1_DATA, a1);   // restore saved masks.
+	// outb(PIC2_DATA, a2);
+	// Enable all interrupts
+	outb(PIC1_DATA, 0x00);
+	outb(PIC2_DATA, 0x00);
+	
 }
 
 void interrupt_enable() {
@@ -218,8 +222,6 @@ __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFra
 	// time keeping
 	pit_increment_time();
 
-	// house keeping functions
-	
 	
 	interrupt_pic_end(32);
 }
@@ -243,9 +245,12 @@ __attribute__ ((interrupt)) void interrupt_irq035(interruptFrame_t* interruptFra
 }
 
 __attribute__ ((interrupt)) void interrupt_irq036(interruptFrame_t* interruptFrame) {
-	// test interrupt
-	println("Interrupt: 036");
-	interrupt_Counter[36] += 1;
+	// COM 1
+	char tempString[256];
+	serial_interrupt_read();
+	interrupt_Counter[35] += 1;
+	interrupt_pic_end(36);
+
 }
 
 __attribute__ ((interrupt)) void interrupt_irq037(interruptFrame_t* interruptFrame) {

@@ -17,11 +17,13 @@
 
 
 #include "types.h"
+#include "io.h"
 #include "print.h"
 #include "memory.h"
 #include "string.h"
 #include "panic.h"
 #include "interrupt.h"
+#include "ata.h"
 
 
 
@@ -31,7 +33,7 @@ void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart, uint16_
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
     // Serial
-    serialInit(COM1);
+    serialInit();
     // Init memory
     print("Initializing memory... ");
     if (!memory_init(mbd, magic, heapStart)) {
@@ -48,6 +50,19 @@ void kernel_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart, uint16_
     print("Initializing Interrupts... ");
     if (!interrupt_init(cs)) {
         println("OK");
+    }
+    else {
+        println ("Error Initializing Interrupts");
+        panic();
+    }
+
+    print("Initializing Drive.. ");
+    if (!ata_init()) {
+        println("OK");
+    }
+    else {
+        println ("Error Initializing Drive");
+        panic();
     }
     
     println("Welcome to miniOS!");

@@ -33,13 +33,18 @@
 			"string.h": "c",
 			"io.h": "c",
 			"stdalign.h": "c",
-			"panic.h": "c"
+			"panic.h": "c",
+			"efi.h": "c",
+			"efilib.h": "c",
+			"efilibplat.h": "c",
+			"efibind.h": "c"
 		},
 		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i686-elf-gcc",
 		"C_Cpp.default.intelliSenseMode": "gcc-x86",
 		"C_Cpp.default.includePath": [
 			"${HOME}/opt/cross/i686-elf/11.2.0/include/",
 			"${workspaceFolder}/src/**",
+			"${workspaceFolder}/src/include/gnu-efi-code/inc/**",
 		],
 		"C_Cpp.intelliSenseMemoryLimit": 2048,
 		"C_Cpp.default.cStandard": "c17",

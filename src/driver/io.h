@@ -19,9 +19,27 @@
 #pragma once
 
 #include "types.h"
+#include "print.h"
+#include "string.h"
+
+#define COM1                0x3F8
+#define COM2                0x2F8
+#define COM3                0x3E8
+#define COM4                0x2E8
+#define COMport             COM1
+
+void serialInit();
+
+char serialInByte();
+
+void serial_interrupt_read();
+
+char* serial_get_buffer(char* buffer);
 
 uint8_t inb(uint16_t port);
-
 void outb(uint16_t port, uint8_t value);
+
+uint16_t inw(uint16_t port);
+void outw(uint16_t port, uint16_t value);
 
 void io_wait();

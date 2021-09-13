@@ -22,20 +22,14 @@
 #include "driver/io.h"
 #include "kernel/panic.h"
 
-#define COM1 0x3F8
-#define COM2 0x2F8
-#define COM3 0x3E8
-#define COM4 0x2E8
 
-void serialInit(uint16_t _COMport);
 
-char serialInByte();
 
-void serial_interval_read();
 
-char* read(char* buffer);
+char readChar();
+
+void printChar(char character);
 
 void print(char* string);
 
 void println(char* string);
-
