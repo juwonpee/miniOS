@@ -19,7 +19,7 @@
 #include "types.h"
 
 
-typedef struct rsdp_descriptor_t {
+typedef struct acpi_rsdp_descriptor_t {
 	uint8_t signature[8];
 	uint8_t checksum;
 	uint8_t OEMID[6];
@@ -29,7 +29,7 @@ typedef struct rsdp_descriptor_t {
 	uint64_t xsdpAddress;
 	uint8_t extendedChecksum;
 	uint8_t reserved[3];
-} rsdp_descriptor_t;
+} acpi_rsdp_descriptor_t;
 
 typedef struct acpi_sdt_header {
 	uint8_t signature[4];
