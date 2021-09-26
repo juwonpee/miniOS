@@ -20,5 +20,6 @@
 
 void panic() {
     println("Halting");
+    asm volatile ("cli");
     asm volatile ("hlt");
 }

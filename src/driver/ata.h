@@ -92,3 +92,5 @@
 
 
 bool ata_init();
+
+bool ata_read_sector();

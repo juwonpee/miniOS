@@ -19,15 +19,16 @@
 
 #include "types.h"
 #include "io.h"
+#include "ata.h"
 
-#define PIT_DIVISOR                 65535
+#define PIT_DIVISOR                 8192
 #define PIT_MAX_DIVISOR             65535
 #define PIT_BASE_FREQUENCY          1193182
 
 #define PIT_COMMAND                 0x40
 
 
-int8_t pit_init();
+bool pit_init();
 
 bool pit_increment_time();
 uint64_t pit_get_time_since_boot();

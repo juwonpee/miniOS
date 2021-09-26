@@ -20,19 +20,18 @@ uint64_t pit_time_since_boot = 0;
 uint32_t pit_frequency;
 uint64_t pit_ticks = 0;
 
-int8_t pit_init() {
-    int8_t errorFlags = 0;
+bool pit_init() {
     uint16_t divisor = PIT_DIVISOR;
     if (divisor > PIT_MAX_DIVISOR) {
         divisor = PIT_MAX_DIVISOR;
-        errorFlags = 1;
+        println("Warning: PIT_DIVISOR larger than PIT_MAX_DIVISOR, Reccomend changing value");
     }
     outb(0x40, (uint8_t)(divisor & 0xFF));
     io_wait();
     outb(0x40, (uint8_t)(divisor >> 8));
 
     pit_frequency = PIT_BASE_FREQUENCY / divisor;
-    return errorFlags;
+    return false;
 }
 
 bool pit_increment_time() {

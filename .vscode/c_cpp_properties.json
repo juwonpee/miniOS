@@ -4,7 +4,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/src/**",
-                "${workspaceFolder}/src/include/gnu-efi-code/inc/**",
                 "${HOME}/opt/cross/lib/gcc/i686-elf/11.2.0/include/"
             ],
             "defines": [],

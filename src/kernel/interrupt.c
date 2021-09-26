@@ -140,11 +140,6 @@ void interrupt_idt_init(uint16_t cs) {
 }
 
 void interrupt_pic_init(uint8_t offset1, uint8_t offset2) {
-	uint8_t a1, a2;
-	 
-	a1 = inb(PIC1_DATA);                        					// save masks
-	a2 = inb(PIC2_DATA);
-	 
 	outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);  // starts the initialization sequence (in cascade mode)
 	io_wait();
 	outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
@@ -189,7 +184,9 @@ void interrupt_pic_end(uint8_t irq) {
 bool interrupt_init(uint16_t cs) {
 	interrupt_idt_init(cs);
 	interrupt_pic_init(32, 40);
-	pit_init();
+	if (pit_init()) {
+		return true;
+	}
 	interrupt_disable();
 	interrupt_enable();
 	return false;
@@ -216,7 +213,7 @@ __attribute__ ((interrupt)) void interrupt_isr008(interruptFrame_t* interruptFra
 }
 
 __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFrame) {
-	char tempString[64];
+	interrupt_disable();
 	interrupt_Counter[32] += 1;
 
 	// time keeping
@@ -224,6 +221,7 @@ __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFra
 
 	
 	interrupt_pic_end(32);
+	interrupt_enable();
 }
 
 __attribute__ ((interrupt)) void interrupt_irq033(interruptFrame_t* interruptFrame) {
@@ -245,8 +243,6 @@ __attribute__ ((interrupt)) void interrupt_irq035(interruptFrame_t* interruptFra
 }
 
 __attribute__ ((interrupt)) void interrupt_irq036(interruptFrame_t* interruptFrame) {
-	// COM 1
-	char tempString[256];
 	serial_interrupt_read();
 	interrupt_Counter[35] += 1;
 	interrupt_pic_end(36);
@@ -308,9 +304,14 @@ __attribute__ ((interrupt)) void interrupt_irq045(interruptFrame_t* interruptFra
 }
 
 __attribute__ ((interrupt)) void interrupt_irq046(interruptFrame_t* interruptFrame) {
-	// test interrupt
+	interrupt_disable();
 	println("Interrupt: 046");
 	interrupt_Counter[46] += 1;
+
+	ata_read_sector();
+
+	interrupt_pic_end(46);
+	interrupt_enable();
 }
 
 __attribute__ ((interrupt)) void interrupt_irq047(interruptFrame_t* interruptFrame) {

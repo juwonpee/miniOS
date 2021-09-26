@@ -64,7 +64,6 @@ void serialOutByte(char character) {
 
 void serial_interrupt_read() {
     char tempChar = inb(COMport);
-	char tempString[64];
     switch (tempChar) {
         case 0x0D:                                                   // Change carrige return to new line
             serial_input_buffer[serial_input_buffer_index] = '\0';
@@ -92,6 +91,7 @@ char* serial_get_buffer(char* buffer) {
     else {
         buffer[serial_input_buffer_index] = '\0';
     }
+    return buffer;
 }
 
 uint8_t inb(uint16_t port) {
@@ -119,6 +119,7 @@ uint16_t inw(uint16_t port) {
         : "=a" (returnVal)
         : "Nd" (port)
     );
+    return returnVal;
 }
 
 void outw(uint16_t port, uint16_t value) {

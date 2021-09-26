@@ -73,7 +73,7 @@ void free(void* address) {
     }
 }
 
-bool memory_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
+bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* heapStart) {
     // TODO: BUG HACK
     // linker rounds down _end to the nearest 4096 byte, so there is still data at heapStart
     // skipping to another page to get clear memory
@@ -85,7 +85,7 @@ bool memory_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
     // Variables to initialize memory;
     void* usableFirstPageAddress;
     void* usableLastPageAddress;
-    void* finalPageAddress;
+    void* finalPageAddress = 0xFFFFF000;
 
     // some housekeeping stuff
     kstart = heapStart;
@@ -93,39 +93,9 @@ bool memory_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                          Memory Type                                          */
 /*-----------------------------------------------------------------------------------------------*/
-    /* Make sure the magic number matches for memory mapping*/
-    if(magic != MULTIBOOT_BOOTLOADER_MAGIC) {
-        println("Fatal Error: Invalid magic number");
-        print("Check multiboot magic number: ");
-        println(itoa(magic, tempString, 16));
-        panic();
-    }
- 
-    /* Check bit 6 to see if we have a valid memory map */
-    if(!(mbd->flags >> 6 & 0x1)) {
-        println("Fatal Error: Invalid memory map given by GRUB bootloader");
-        print("Check multiboot mbd flags: ");
-        println(itoa(mbd -> flags, tempString, 16));
-        panic();
-    }
- 
-    /* Loop through the memory map and display the values */
-    for(uint32_t i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t)) 
-    {
-        multiboot_memory_map_t* mmmt = (multiboot_memory_map_t*) (mbd->mmap_addr + i);
- 
-        if(mmmt->type == MULTIBOOT_MEMORY_AVAILABLE) {
-            // get first and last page addresses 
-            usableFirstPageAddress = (void*)mmmt -> addr;
-            uint32_t tempLong = mmmt -> addr + mmmt -> len - 1;
-            tempLong &= 0xFFFFF000;
-            usableLastPageAddress = (void*)tempLong;
-        }
-        // Iterate through sections and get final page address
-        uint32_t tempLong = mmmt -> addr + mmmt -> len - 1;
-        tempLong &= 0xFFFFF000;
-        finalPageAddress = (void*)tempLong;
-    }
+
+    usableFirstPageAddress = (void*)(multiboot_meminfo -> mem_lower * 1024);
+    usableLastPageAddress = (void*) (multiboot_meminfo -> mem_upper * 1024 + (uint32_t)usableFirstPageAddress);
     
 
 /*-----------------------------------------------------------------------------------------------*/
