@@ -20,7 +20,7 @@
 
 #include <stdalign.h>
 #include "types.h"
-#include "multiboot.h"
+#include "multiboot2.h"
 #include "driver/print.h"
 #include "string.h"
 
@@ -65,7 +65,7 @@ typedef struct pageTable_t {
             uint32_t present:1;
             uint32_t RW:1;                                         // Read/Write
             uint32_t US:1;                                         // User/Supervisor
-            uint32_t pageWriteThrough:1;
+            uint32_t pageWriteThrough:1; 
             uint32_t pageCacheDisable:1;
             uint32_t accessed:1;
             uint32_t dirty:1;
@@ -83,4 +83,4 @@ typedef struct pageTable_t {
 
 void* malloc(uint32_t size);
 void free(void* address);
-bool memory_init(multiboot_info_t* mbd, uint32_t magic, void* heapStart);
+bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* heapStart);

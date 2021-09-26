@@ -33,7 +33,13 @@
 			"string.h": "c",
 			"io.h": "c",
 			"stdalign.h": "c",
-			"panic.h": "c"
+			"panic.h": "c",
+			"efi.h": "c",
+			"efilib.h": "c",
+			"efilibplat.h": "c",
+			"efibind.h": "c",
+			"uefi.h": "c",
+			"uefispec.h": "c"
 		},
 		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i686-elf-gcc",
 		"C_Cpp.default.intelliSenseMode": "gcc-x86",
@@ -44,5 +50,8 @@
 		"C_Cpp.intelliSenseMemoryLimit": 2048,
 		"C_Cpp.default.cStandard": "c17",
 		"C_Cpp.default.cppStandard": "c++20",
+		"search.exclude": {
+			"**/node_modules": false
+		},
 	}
 }
