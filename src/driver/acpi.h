@@ -26,12 +26,12 @@ typedef struct rsdp_descriptor_t {
 	uint8_t revision;
 	uint32_t rsdtAddress;
 	uint32_t length;
-	xsdt_descriptor* xsdpAddress;
+	uint64_t xsdpAddress;
 	uint8_t extendedChecksum;
 	uint8_t reserved[3];
 } rsdp_descriptor_t;
 
-typedef struct xsdt_descriptor {
+typedef struct acpi_sdt_header {
 	uint8_t signature[4];
 	uint32_t length;
 	uint8_t revision;
@@ -41,4 +41,6 @@ typedef struct xsdt_descriptor {
 	uint32_t OENRevision;
 	uint32_t creatorID;
 	uint32_t creatorRevision;
-}
+} acpi_sdt_header;
+
+typedef struct 
