@@ -17,25 +17,17 @@
 // Only the bootloader is written in GAS assembly as i copied it from osdev
 
 
-
-/*/* Declare constants for the multiboot header. */
-.set ALIGN,    1<<0             /* align loaded modules on page boundaries */
-.set MEMINFO,  1<<1             /* provide memory map */
-.set FLAGS,    ALIGN | MEMINFO  /* this is the Multiboot 'flag' field */
-.set MAGIC,    0x1BADB002       /* 'magic number' lets bootloader find the header */
-.set CHECKSUM, -(MAGIC + FLAGS) /* checksum of above, to prove we are multiboot */*/
-
 .set MAGIC,    			0xE85250D6		/* 'magic number' lets bootloader find the header */
 .set ARCHITECTURE,		0				/* 0 = i386 */
 .set HEADER_LENGTH,		24
 .set CHECKSUM,			-(MAGIC + ARCHITECTURE + HEADER_LENGTH)
 .set TYPE0,				0
-.set FLAGS0,				0
+.set FLAGS0,			0
 .set SIZE0,				8
 
 
 .section .multiboot2
-.align 4
+.align 8
 .long MAGIC
 .long ARCHITECTURE
 .long HEADER_LENGTH

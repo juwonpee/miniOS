@@ -25,6 +25,7 @@
 #include "interrupt.h"
 #include "pci.h"
 #include "multiboot2.h"
+#include "acpi.h"
 //#include "ata.h"
 
 struct multiboot_tag_basic_meminfo* multiboot_meminfo;
@@ -86,6 +87,15 @@ void kernel_init(uint32_t magic, uint32_t addr, void* heapStart, uint16_t cs) {
     }
     else {
         println ("Error Initializing Interrupts");
+        panic();
+    }
+
+    print("Initializing ACPI... ");
+    if (!acpi_init(multiboot_acpi)) {
+        println("OK");
+    }
+    else {
+        println("Error Initializing ACPI");
         panic();
     }
 
