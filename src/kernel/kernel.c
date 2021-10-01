@@ -17,6 +17,7 @@
 
 
 #include "types.h"
+#include "kernel.h"
 #include "io.h"
 #include "print.h"
 #include "memory.h"
@@ -32,12 +33,12 @@ struct multiboot_tag_basic_meminfo* multiboot_meminfo;
 struct multiboot_tag_new_acpi* multiboot_acpi;
 
 void bootInfo(uint32_t magic, uint32_t addr) {
-    char* tempString[64];
+    char tempString[64];
 
     /* Make sure the magic number matches for memory mapping*/
     if(magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
-        println("Fatal Error: Invalid magic number");
-        print("Check multiboot magic number: ");
+        println("Fatal Error: Invalid multiboot2 magic number");
+        print("Check if booted by multiboot2 compliant bootloader");
         println(itoa(magic, tempString, 16));
         panic();
     }
@@ -58,7 +59,7 @@ void bootInfo(uint32_t magic, uint32_t addr) {
     }
 }
 
-void kernel_init(uint32_t magic, uint32_t addr, void* heapStart, uint16_t cs) {
+void kernel_init(uint32_t magic, uint32_t addr, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
@@ -82,6 +83,12 @@ void kernel_init(uint32_t magic, uint32_t addr, void* heapStart, uint16_t cs) {
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
     print("Initializing Interrupts... ");
+    uint16_t cs;
+    asm volatile (
+        "mov %%cs, %0" 
+        : "=r" (cs)
+        : 
+    );
     if (!interrupt_init(cs)) {
         println("OK");
     }

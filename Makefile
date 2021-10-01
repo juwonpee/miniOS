@@ -1,13 +1,13 @@
-CC = i686-elf-gcc
 AS = i686-elf-as
+CC = i686-elf-gcc
 CC_INCLUDE = -Isrc/ -Isrc/include/ -Isrc/kernel -Isrc/driver
 CCFLAGS = -Og -ggdb -ffreestanding -Wall -g
 LDFLAGS = -lgcc -nostdlib
 
 SRC_DIR = src
 
-BOOTLOADER_SOURCE = $(wildcard $(SRC_DIR)/bootloader/*.s)
-BOOTLOADER_OBJ = $(BOOTLOADER_SOURCE:.s=.o)
+BOOTLOADER_SOURCE = $(wildcard $(SRC_DIR)/bootloader/*.S)
+BOOTLOADER_OBJ = $(BOOTLOADER_SOURCE:.S=.o)
 C_SOURCES = $(wildcard $(SRC_DIR)/driver/*.c $(SRC_DIR)/include/*.c $(SRC_DIR)/kernel/*.c)
 C_OBJ = $(C_SOURCES:.c=.o)
 OBJECTS = $(BOOTLOADER_OBJ) $(C_OBJ)
@@ -15,12 +15,12 @@ OUTPUT = build/isodir/boot/miniOS.bin
 
 QEMU = qemu-system-i386 -cpu pentium
 
-all: kernel check_multiboot clear image
+all: binary check_multiboot image clear
 
 binary: kernel clear
 
 bootloader:
-	$(AS) $(BOOTLOADER_SOURCE) -o $(BOOTLOADER_OBJ)
+	$(CC) $(CC_INCLUDE) -c $(BOOTLOADER_SOURCE) -o $(BOOTLOADER_OBJ)
 
 kernel: bootloader $(C_OBJ)
 	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
@@ -29,17 +29,18 @@ clear:
 	find . -name "*.o" | xargs -r rm 
 
 image: check_multiboot
-	grub-mkrescue --modules=multiboot2 -o build/miniOS.iso build/isodir
-# 	dd if=/dev/zero of=build/miniOS.hdd bs=512 count=100000
-# 	losetup /dev/loop0 build/miniOS.hdd
-# 	losetup /dev/loop1 build/miniOS.hdd -o 1048576
-# 	grub-install --target=i386-pc --root-directory=build/buildMount --no-floppy --modules="normal part_msdos ext2 multiboot biosdev" /dev/loop0
-# 	mke2fs /dev/loop1
-# 	mkdosfs -F32 -f 2 /dev/loop1
-# 	mkdir build/buildMount
-# 	mount /dev/loop1 build/buildMount
-# 	cp build/miniOS.bin build/buildMount/miniOS.bin
-# 	umount build/buildMount
+	grub-mkrescue --modules="normal part_msdos ext2 multiboot multiboot2" -o build/miniOS.iso build/isodir
+# #	dd if=/dev/zero of=$(OUTPUT_IMAGE) bs=512 count=100000
+# 	fdisk $(OUTPUT_IMAGE)
+# 	losetup /dev/loop0 $(OUTPUT_IMAGE)
+# 	losetup /dev/loop1 $(OUTPUT_IMAGE) -o 1048576
+# 	mke2fs /dev/loop0
+# 	mkfs.vfat -F 32 /dev/loop1
+# 	mmd -i /dev/loop1 ::boot
+# 	mcopy -i /dev/loop1 build/isodir/boot/miniOS.bin ::boot/miniOS.bin
+# 	mmd -i /dev/loop1 ::boot/grub
+# 	mcopy -i /dev/loop1 build/isodir/boot/grub/grub.cfg ::boot/grub/grub.cfg
+# 	grub-install --target=i386-pc --force --root-directory=/mnt --no-floppy --modules="normal part_msdos ext2 multiboot multiboot2" /dev/loop0
 # 	losetup -d /dev/loop0
 # 	losetup -d /dev/loop1
 
@@ -56,26 +57,26 @@ check_multiboot:
 
 run:
 	$(QEMU) \
-		-m 1G\
+		-m 256M -M q35\
 		-hda build/miniOS.iso \
 		-nographic 
 
 run_debug:	
 	$(QEMU) \
-		-m 1G\
+		-m 256M -M q35\
 		-hda build/miniOS.iso \
 		-nographic \
 		-S -s
 
 run_no_grub:	
 	$(QEMU) \
-		-m 1G\
-		-kernel build/isodir/boot/miniOS.bin \
+		-m 256M -M q35\
+		-kernel $(OUTPUT) \
 		-nographic 
 
 run_no_grub_debug:	
 	$(QEMU) \
-		-m 1G\
-		-kernel build/isodir/boot/miniOS.bin \
+		-m 256M -M q35\
+		-kernel $(OUTPUT) \
 		-nographic \
 		-S -s
