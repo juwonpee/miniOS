@@ -85,7 +85,7 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
     // Variables to initialize memory;
     void* usableFirstPageAddress;
     void* usableLastPageAddress;
-    void* finalPageAddress = 0xFFFFF000;
+    void* finalPageAddress = (void*)0xFFFFF000;
 
     // some housekeeping stuff
     kstart = heapStart;

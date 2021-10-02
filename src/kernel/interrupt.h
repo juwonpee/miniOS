@@ -147,7 +147,7 @@ __attribute__ ((interrupt)) void interrupt_isr008(interruptFrame_t* interruptFra
 // __attribute__ ((interrupt)) void interrupt_isr011(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void interrupt_isr012(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void interrupt_isr013(interruptFrame_t* interruptFrame);
-// __attribute__ ((interrupt)) void interrupt_isr014(interruptFrame_t* interruptFrame);
+ __attribute__ ((interrupt)) void interrupt_isr014(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void interrupt_isr015(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void interrupt_isr016(interruptFrame_t* interruptFrame);
 // __attribute__ ((interrupt)) void interrupt_isr017(interruptFrame_t* interruptFrame);

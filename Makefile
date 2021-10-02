@@ -12,6 +12,7 @@ C_SOURCES = $(wildcard $(SRC_DIR)/driver/*.c $(SRC_DIR)/include/*.c $(SRC_DIR)/k
 C_OBJ = $(C_SOURCES:.c=.o)
 OBJECTS = $(BOOTLOADER_OBJ) $(C_OBJ)
 OUTPUT = build/isodir/boot/miniOS.bin
+OUTPUT_IMAGE = build/miniOS.iso
 
 QEMU = qemu-system-i386 -cpu pentium
 
@@ -20,7 +21,7 @@ all: binary check_multiboot image clear
 binary: kernel clear
 
 bootloader:
-	$(CC) $(CC_INCLUDE) -c $(BOOTLOADER_SOURCE) -o $(BOOTLOADER_OBJ)
+	$(CC) $(CC_INCLUDE) -g -c $(BOOTLOADER_SOURCE) -o $(BOOTLOADER_OBJ)
 
 kernel: bootloader $(C_OBJ)
 	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
@@ -29,7 +30,7 @@ clear:
 	find . -name "*.o" | xargs -r rm 
 
 image: check_multiboot
-	grub-mkrescue --modules="normal part_msdos ext2 multiboot multiboot2" -o build/miniOS.iso build/isodir
+	grub-mkrescue --modules="normal part_msdos ext2 multiboot multiboot2" -o $(OUTPUT_IMAGE) build/isodir
 # #	dd if=/dev/zero of=$(OUTPUT_IMAGE) bs=512 count=100000
 # 	fdisk $(OUTPUT_IMAGE)
 # 	losetup /dev/loop0 $(OUTPUT_IMAGE)
@@ -58,13 +59,13 @@ check_multiboot:
 run:
 	$(QEMU) \
 		-m 256M -M q35\
-		-hda build/miniOS.iso \
+		-hda $(OUTPUT_IMAGE) \
 		-nographic 
 
 run_debug:	
 	$(QEMU) \
 		-m 256M -M q35\
-		-hda build/miniOS.iso \
+		-hda $(OUTPUT_IMAGE) \
 		-nographic \
 		-S -s
 

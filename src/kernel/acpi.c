@@ -22,7 +22,7 @@ bool acpi_init(struct multiboot_tag_new_acpi* multiboot_acpi) {
     // check for tables
     // print tables
 	acpi_rsdp_descriptor_t* rsdp = (acpi_rsdp_descriptor_t*) &(multiboot_acpi -> rsdp);
-	acpi_xsdt_t* xsdt = (acpi_xsdt_t*)(uintptr_t)(rsdp -> xsdpAddress);
+	acpi_xsdt_t* xsdt = (acpi_xsdt_t*)((uintptr_t)(rsdp -> xsdpAddress));
 	int entries = (xsdt -> acpi_sdt_header.length - sizeof(xsdt -> acpi_sdt_header)) / 8;
 	for (int i = 0; i < entries; i++) {
 		acpi_sdt_header_t* h = (acpi_sdt_header_t*) xsdt -> tablePointer;

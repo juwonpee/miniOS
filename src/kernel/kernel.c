@@ -47,19 +47,25 @@ void bootInfo(uint32_t magic, uint32_t addr) {
         println("Unaligned MBI");       // Whatever mbi is
         panic();
     }
-    for (struct multiboot_tag* mbi = (struct multiboot_tag*)(addr + 8); mbi -> type != MULTIBOOT_TAG_TYPE_END; mbi = (struct multiboot_tag *) ((multiboot_uint8_t *) mbi + ((mbi->size + 7) & ~7))) {
+    for (
+        struct multiboot_tag* mbi = (struct multiboot_tag*)(addr + sizeof(struct multiboot_header)); 
+        (uintptr_t)mbi < addr + ((struct multiboot_header*)addr) -> header_length; 
+        mbi = (struct multiboot_tag*)((uintptr_t)mbi + mbi -> size)
+    ) {
         switch (mbi -> type) {
             case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
+                println("MULTIBOOT TAG TYPE BASIC MEMINFO");
                 multiboot_meminfo = (struct multiboot_tag_basic_meminfo*)mbi;
                 break;
             case MULTIBOOT_TAG_TYPE_ACPI_NEW:
+                println("MULTIBOOT TAG TYPE ACPI NEW");
                 multiboot_acpi = (struct multiboot_tag_new_acpi*)mbi;
                 break;
-        }
+        }    
     }
 }
 
-void kernel_init(uint32_t magic, uint32_t addr, void* heapStart) {
+void kernel_init(uint32_t addr, uint32_t magic, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
@@ -97,7 +103,7 @@ void kernel_init(uint32_t magic, uint32_t addr, void* heapStart) {
         panic();
     }
 
-    print("Initializing ACPI... ");
+    print("Initializing ACPI tables... ");
     if (!acpi_init(multiboot_acpi)) {
         println("OK");
     }

@@ -39,7 +39,8 @@
 			"efilibplat.h": "c",
 			"efibind.h": "c",
 			"uefi.h": "c",
-			"uefispec.h": "c"
+			"uefispec.h": "c",
+			"multiboot2.h": "c"
 		},
 		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i686-elf-gcc",
 		"C_Cpp.default.intelliSenseMode": "gcc-x86",
@@ -53,5 +54,6 @@
 		"search.exclude": {
 			"**/node_modules": false
 		},
+		"C_Cpp.intelliSenseEngineFallback": "Enabled",
 	}
 }

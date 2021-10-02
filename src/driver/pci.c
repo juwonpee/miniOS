@@ -19,4 +19,5 @@
 
 
 bool pci_init(struct multiboot_tag_new_acpi* multiboot_acpi) {
+	return false;
 }

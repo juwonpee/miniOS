@@ -33,7 +33,12 @@ void interrupt_idt_init(uint16_t cs) {
 	interrupt_IDT[8].ignore = 0;
 	interrupt_IDT[8].flags = IDT_FLAGS_TRAP;
 	interrupt_IDT[8].offset2 = (uint32_t)&interrupt_isr008 >> 16;
-
+	
+	interrupt_IDT[14].offset1 = (uint32_t)&interrupt_isr014 & 0xFFFF;
+	interrupt_IDT[14].selector = cs;
+	interrupt_IDT[14].ignore = 0;
+	interrupt_IDT[14].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[14].offset2 = (uint32_t)&interrupt_isr014 >> 16;
 
 	interrupt_IDT[32].offset1 = (uint32_t)&interrupt_irq032 & 0xFFFF;
 	interrupt_IDT[32].selector = cs;
@@ -185,6 +190,7 @@ bool interrupt_init(uint16_t cs) {
 	interrupt_idt_init(cs);
 	interrupt_pic_init(32, 40);
 	if (pit_init()) {
+		println("Error Initializing PIT");
 		return true;
 	}
 	interrupt_disable();
@@ -210,6 +216,11 @@ __attribute__ ((interrupt)) void interrupt_isr002(interruptFrame_t* interruptFra
 __attribute__ ((interrupt)) void interrupt_isr008(interruptFrame_t* interruptFrame) {
 	println("Interrupt: 008, Double fault!");
 	interrupt_Counter[8] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr014(interruptFrame_t* interruptFrame) {
+	println("Interrupt: 014, Page Fault!");
+	interrupt_Counter[14] += 1;
 }
 
 __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFrame) {
