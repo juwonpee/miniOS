@@ -29,10 +29,10 @@
 #include "acpi.h"
 //#include "ata.h"
 
-struct multiboot_tag_basic_meminfo* multiboot_meminfo;
-struct multiboot_tag_new_acpi* multiboot_acpi;
+struct multiboot_tag_basic_meminfo multiboot_meminfo;
+struct multiboot_tag_old_acpi multiboot_acpi;
 
-void bootInfo(uint32_t magic, uint32_t addr) {
+bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
     char tempString[64];
 
     /* Make sure the magic number matches for memory mapping*/
@@ -40,32 +40,40 @@ void bootInfo(uint32_t magic, uint32_t addr) {
         println("Fatal Error: Invalid multiboot2 magic number");
         print("Check if booted by multiboot2 compliant bootloader");
         println(itoa(magic, tempString, 16));
-        panic();
+        return ATA_TRUSTED_RECIEVE;
     }
 
-    if (addr & 7) {
+    if ((uintptr_t)addr & 7) {
         println("Unaligned MBI");       // Whatever mbi is
-        panic();
+        return true;;
     }
+
     for (
-        struct multiboot_tag* mbi = (struct multiboot_tag*)(addr + sizeof(struct multiboot_header)); 
-        (uintptr_t)mbi < addr + ((struct multiboot_header*)addr) -> header_length; 
-        mbi = (struct multiboot_tag*)((uintptr_t)mbi + mbi -> size)
+        struct multiboot_tag* mbi = (struct multiboot_tag*)((uintptr_t)(addr) + sizeof(struct multiboot_tag_header)); 
+        (uintptr_t)mbi < addr -> total_size + (uintptr_t)addr; 
+        mbi = (struct multiboot_tag*)(((uintptr_t)mbi) + mbi -> size)
     ) {
+        // 8 byte alignment
+        if ((uintptr_t)mbi % 8 != 0) {
+            mbi = (struct multiboot_tag*)(((uintptr_t)mbi & 0xFFFFFFF8) + 0x8);
+        }
         switch (mbi -> type) {
-            case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
-                println("MULTIBOOT TAG TYPE BASIC MEMINFO");
-                multiboot_meminfo = (struct multiboot_tag_basic_meminfo*)mbi;
+            case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
+                print("Bootloader: ");
+                println(((struct multiboot_tag_string*)mbi) -> string);
                 break;
-            case MULTIBOOT_TAG_TYPE_ACPI_NEW:
-                println("MULTIBOOT TAG TYPE ACPI NEW");
-                multiboot_acpi = (struct multiboot_tag_new_acpi*)mbi;
+            case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
+                multiboot_meminfo = (*(struct multiboot_tag_basic_meminfo*)mbi);
+                break;
+            case MULTIBOOT_TAG_TYPE_ACPI_OLD:
+                multiboot_acpi = (*(struct multiboot_tag_old_acpi*)mbi);
                 break;
         }    
     }
+    return false;
 }
 
-void kernel_init(uint32_t addr, uint32_t magic, void* heapStart) {
+void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
@@ -73,7 +81,14 @@ void kernel_init(uint32_t addr, uint32_t magic, void* heapStart) {
     serialInit();
 
     // Check GRUB/EFI system tables
-    bootInfo(magic, addr);
+    print("Checking Boot Information... ");
+    if (!bootInfo(magic, addr)) {
+        println("OK");
+    }
+    else {
+        println("Error while checking Boot Information");
+        panic();
+    }
 
     // Init memory
     print("Initializing memory... ");

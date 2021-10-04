@@ -18,15 +18,24 @@
 
 void* MADT;
 
-bool acpi_init(struct multiboot_tag_new_acpi* multiboot_acpi) {
-    // check for tables
-    // print tables
-	acpi_rsdp_descriptor_t* rsdp = (acpi_rsdp_descriptor_t*) &(multiboot_acpi -> rsdp);
-	acpi_xsdt_t* xsdt = (acpi_xsdt_t*)((uintptr_t)(rsdp -> xsdpAddress));
-	int entries = (xsdt -> acpi_sdt_header.length - sizeof(xsdt -> acpi_sdt_header)) / 8;
-	for (int i = 0; i < entries; i++) {
-		acpi_sdt_header_t* h = (acpi_sdt_header_t*) xsdt -> tablePointer;
-		println((char*)&h -> signature);
+bool acpi_init(struct multiboot_tag_old_acpi multiboot_acpi) {
+    // Check acpi version
+	acpi_rsdp_descriptor_t* rsdp = (acpi_rsdp_descriptor_t*)(&multiboot_acpi.rsdp);
+	if (rsdp -> revision == 0) {
+		println("ACPI Version 1");
 	}
+	else {
+		println("ACPI Version 2");
+	}
+
+	// Get RSDT
+	acpi_rsdt_t* rsdt = (acpi_xsdt_t*)((uintptr_t)(rsdp -> rsdtAddress));
+
+	// Get ACPI tables
+	int entries = (rsdt -> acpi_sdt_header.length - sizeof(rsdt -> acpi_sdt_header)) / 4;
+	// for (int i = 0; i < entries; i++) {
+	// 	acpi_sdt_header_t* h = (acpi_sdt_header_t*) xsdt -> tablePointer;
+	// 	println((char*)&h -> signature);
+	// }
 	return false;
 }

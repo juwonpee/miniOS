@@ -73,7 +73,7 @@ void free(void* address) {
     }
 }
 
-bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* heapStart) {
+bool memory_init(struct multiboot_tag_basic_meminfo multiboot_meminfo, void* heapStart) {
     // TODO: BUG HACK
     // linker rounds down _end to the nearest 4096 byte, so there is still data at heapStart
     // skipping to another page to get clear memory
@@ -94,8 +94,8 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
 /*                                          Memory Type                                          */
 /*-----------------------------------------------------------------------------------------------*/
 
-    usableFirstPageAddress = (void*)(multiboot_meminfo -> mem_lower * 1024);
-    usableLastPageAddress = (void*) (multiboot_meminfo -> mem_upper * 1024 + (uint32_t)usableFirstPageAddress);
+    usableFirstPageAddress = (void*)(multiboot_meminfo.mem_lower * 1024);
+    usableLastPageAddress = (void*) (multiboot_meminfo.mem_upper * 1024 + (uint32_t)usableFirstPageAddress);
     
 
 /*-----------------------------------------------------------------------------------------------*/

@@ -59,8 +59,8 @@ _start:
 	# push parameters to kernel init function
 	mov $_end, %ecx
 	push %ecx
-	push %eax						/* Pointer to multiboot information structure */						
-	push %ebx						/* MAGIC value */
+	push %ebx						/* Pointer to multiboot information structure */
+	push %eax						/* MAGIC value */
 	call kernel_init
 	cli
 		hlt

@@ -83,4 +83,4 @@ typedef struct pageTable_t {
 
 void* malloc(uint32_t size);
 void free(void* address);
-bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* heapStart);
+bool memory_init(struct multiboot_tag_basic_meminfo multiboot_meminfo, void* heapStart);

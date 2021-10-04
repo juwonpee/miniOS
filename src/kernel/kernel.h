@@ -17,3 +17,9 @@
 #pragma once 
 #include "types.h"
 #include "multiboot2.h"
+
+
+struct multiboot_tag_header {
+	multiboot_uint32_t total_size;
+	multiboot_uint32_t reserved;
+};

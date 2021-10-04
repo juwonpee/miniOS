@@ -27,11 +27,16 @@ typedef struct acpi_rsdp_descriptor_t {
 	uint8_t OEMID[6];
 	uint8_t revision;
 	uint32_t rsdtAddress;
+} __attribute__ ((packed)) acpi_rsdp_descriptor_t;
+
+typedef struct acpi_rsdp2_descriptor_t {
+	acpi_rsdp_descriptor_t base;
+
 	uint32_t length;
 	uint64_t xsdpAddress;
 	uint8_t extendedChecksum;
 	uint8_t reserved[3];
-} __attribute__ ((packed)) acpi_rsdp_descriptor_t ;
+} __attribute ((packed)) acpi_rsdp2_descriptor_t;
 
 typedef struct acpi_sdt_header_t {
 	uint8_t signature[4];
@@ -56,4 +61,4 @@ typedef struct acpi_xsdt_t {
 } __attribute__ ((packed)) acpi_xsdt_t;
 
 
-bool acpi_init(struct multiboot_tag_new_acpi* multiboot_acpi);
+bool acpi_init(struct multiboot_tag_old_acpi multiboot_acpi);

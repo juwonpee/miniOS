@@ -21,4 +21,4 @@
 #include "acpi.h"
 
 
-bool pci_init(struct multiboot_tag_new_acpi* multiboot_acpi);
+bool pci_init(struct multiboot_tag_old_acpi multiboot_acpi);

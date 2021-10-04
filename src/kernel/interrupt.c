@@ -28,17 +28,198 @@ void interrupt_idt_init(uint16_t cs) {
 	interrupt_IDTR.base = (uint32_t)&interrupt_IDT;
 
 	// ISR address 0x00~0x1F are CPU reserved in protected mode
+	
+	interrupt_IDT[0].offset1 = (uint32_t)&interrupt_isr000 & 0xFFFF;
+	interrupt_IDT[0].selector = cs;
+	interrupt_IDT[0].ignore = 0;
+	interrupt_IDT[0].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[0].offset2 = (uint32_t)&interrupt_isr000 >> 16;
+	
+	interrupt_IDT[1].offset1 = (uint32_t)&interrupt_isr001 & 0xFFFF;
+	interrupt_IDT[1].selector = cs;
+	interrupt_IDT[1].ignore = 0;
+	interrupt_IDT[1].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[1].offset2 = (uint32_t)&interrupt_isr001 >> 16;
+	
+	interrupt_IDT[2].offset1 = (uint32_t)&interrupt_isr002 & 0xFFFF;
+	interrupt_IDT[2].selector = cs;
+	interrupt_IDT[2].ignore = 0;
+	interrupt_IDT[2].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[2].offset2 = (uint32_t)&interrupt_isr002 >> 16;
+	
+	interrupt_IDT[3].offset1 = (uint32_t)&interrupt_isr003 & 0xFFFF;
+	interrupt_IDT[3].selector = cs;
+	interrupt_IDT[3].ignore = 0;
+	interrupt_IDT[3].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[3].offset2 = (uint32_t)&interrupt_isr003 >> 16;
+	
+	interrupt_IDT[4].offset1 = (uint32_t)&interrupt_isr004 & 0xFFFF;
+	interrupt_IDT[4].selector = cs;
+	interrupt_IDT[4].ignore = 0;
+	interrupt_IDT[4].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[4].offset2 = (uint32_t)&interrupt_isr004 >> 16;
+	
+	interrupt_IDT[5].offset1 = (uint32_t)&interrupt_isr005 & 0xFFFF;
+	interrupt_IDT[5].selector = cs;
+	interrupt_IDT[5].ignore = 0;
+	interrupt_IDT[5].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[5].offset2 = (uint32_t)&interrupt_isr005 >> 16;
+	
+	interrupt_IDT[6].offset1 = (uint32_t)&interrupt_isr006 & 0xFFFF;
+	interrupt_IDT[6].selector = cs;
+	interrupt_IDT[6].ignore = 0;
+	interrupt_IDT[6].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[6].offset2 = (uint32_t)&interrupt_isr006 >> 16;	
+
+	interrupt_IDT[7].offset1 = (uint32_t)&interrupt_isr007 & 0xFFFF;
+	interrupt_IDT[7].selector = cs;
+	interrupt_IDT[7].ignore = 0;
+	interrupt_IDT[7].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[7].offset2 = (uint32_t)&interrupt_isr007 >> 16;
+
 	interrupt_IDT[8].offset1 = (uint32_t)&interrupt_isr008 & 0xFFFF;
 	interrupt_IDT[8].selector = cs;
 	interrupt_IDT[8].ignore = 0;
 	interrupt_IDT[8].flags = IDT_FLAGS_TRAP;
 	interrupt_IDT[8].offset2 = (uint32_t)&interrupt_isr008 >> 16;
 	
+	interrupt_IDT[9].offset1 = (uint32_t)&interrupt_isr009 & 0xFFFF;
+	interrupt_IDT[9].selector = cs;
+	interrupt_IDT[9].ignore = 0;
+	interrupt_IDT[9].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[9].offset2 = (uint32_t)&interrupt_isr009 >> 16;
+	
+	interrupt_IDT[10].offset1 = (uint32_t)&interrupt_isr010 & 0xFFFF;
+	interrupt_IDT[10].selector = cs;
+	interrupt_IDT[10].ignore = 0;
+	interrupt_IDT[10].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[10].offset2 = (uint32_t)&interrupt_isr010 >> 16;
+	
+	interrupt_IDT[11].offset1 = (uint32_t)&interrupt_isr011 & 0xFFFF;
+	interrupt_IDT[11].selector = cs;
+	interrupt_IDT[11].ignore = 0;
+	interrupt_IDT[11].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[11].offset2 = (uint32_t)&interrupt_isr011 >> 16;
+	
+	interrupt_IDT[12].offset1 = (uint32_t)&interrupt_isr012 & 0xFFFF;
+	interrupt_IDT[12].selector = cs;
+	interrupt_IDT[12].ignore = 0;
+	interrupt_IDT[12].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[12].offset2 = (uint32_t)&interrupt_isr012 >> 16;
+	
+	interrupt_IDT[13].offset1 = (uint32_t)&interrupt_isr013 & 0xFFFF;
+	interrupt_IDT[13].selector = cs;
+	interrupt_IDT[13].ignore = 0;
+	interrupt_IDT[13].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[13].offset2 = (uint32_t)&interrupt_isr013 >> 16;
+	
 	interrupt_IDT[14].offset1 = (uint32_t)&interrupt_isr014 & 0xFFFF;
 	interrupt_IDT[14].selector = cs;
 	interrupt_IDT[14].ignore = 0;
 	interrupt_IDT[14].flags = IDT_FLAGS_TRAP;
 	interrupt_IDT[14].offset2 = (uint32_t)&interrupt_isr014 >> 16;
+	
+	interrupt_IDT[15].offset1 = (uint32_t)&interrupt_isr015 & 0xFFFF;
+	interrupt_IDT[15].selector = cs;
+	interrupt_IDT[15].ignore = 0;
+	interrupt_IDT[15].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[15].offset2 = (uint32_t)&interrupt_isr015 >> 16;
+	
+	interrupt_IDT[16].offset1 = (uint32_t)&interrupt_isr016 & 0xFFFF;
+	interrupt_IDT[16].selector = cs;
+	interrupt_IDT[16].ignore = 0;
+	interrupt_IDT[16].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[16].offset2 = (uint32_t)&interrupt_isr016 >> 16;
+	
+	interrupt_IDT[17].offset1 = (uint32_t)&interrupt_isr017 & 0xFFFF;
+	interrupt_IDT[17].selector = cs;
+	interrupt_IDT[17].ignore = 0;
+	interrupt_IDT[17].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[17].offset2 = (uint32_t)&interrupt_isr017 >> 16;
+	
+	interrupt_IDT[18].offset1 = (uint32_t)&interrupt_isr018 & 0xFFFF;
+	interrupt_IDT[18].selector = cs;
+	interrupt_IDT[18].ignore = 0;
+	interrupt_IDT[18].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[18].offset2 = (uint32_t)&interrupt_isr018 >> 16;
+	
+	interrupt_IDT[19].offset1 = (uint32_t)&interrupt_isr019 & 0xFFFF;
+	interrupt_IDT[19].selector = cs;
+	interrupt_IDT[19].ignore = 0;
+	interrupt_IDT[19].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[19].offset2 = (uint32_t)&interrupt_isr019 >> 16;
+	
+	interrupt_IDT[20].offset1 = (uint32_t)&interrupt_isr020 & 0xFFFF;
+	interrupt_IDT[20].selector = cs;
+	interrupt_IDT[20].ignore = 0;
+	interrupt_IDT[20].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[20].offset2 = (uint32_t)&interrupt_isr020 >> 16;
+	
+	interrupt_IDT[21].offset1 = (uint32_t)&interrupt_isr021 & 0xFFFF;
+	interrupt_IDT[21].selector = cs;
+	interrupt_IDT[21].ignore = 0;
+	interrupt_IDT[21].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[21].offset2 = (uint32_t)&interrupt_isr021 >> 16;
+	
+	interrupt_IDT[22].offset1 = (uint32_t)&interrupt_isr022 & 0xFFFF;
+	interrupt_IDT[22].selector = cs;
+	interrupt_IDT[22].ignore = 0;
+	interrupt_IDT[22].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[22].offset2 = (uint32_t)&interrupt_isr022 >> 16;
+	
+	interrupt_IDT[23].offset1 = (uint32_t)&interrupt_isr023 & 0xFFFF;
+	interrupt_IDT[23].selector = cs;
+	interrupt_IDT[23].ignore = 0;
+	interrupt_IDT[23].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[23].offset2 = (uint32_t)&interrupt_isr023 >> 16;
+	
+	interrupt_IDT[24].offset1 = (uint32_t)&interrupt_isr024 & 0xFFFF;
+	interrupt_IDT[24].selector = cs;
+	interrupt_IDT[24].ignore = 0;
+	interrupt_IDT[24].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[24].offset2 = (uint32_t)&interrupt_isr024 >> 16;
+	
+	interrupt_IDT[25].offset1 = (uint32_t)&interrupt_isr025 & 0xFFFF;
+	interrupt_IDT[25].selector = cs;
+	interrupt_IDT[25].ignore = 0;
+	interrupt_IDT[25].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[25].offset2 = (uint32_t)&interrupt_isr025 >> 16;
+	
+	interrupt_IDT[26].offset1 = (uint32_t)&interrupt_isr026 & 0xFFFF;
+	interrupt_IDT[26].selector = cs;
+	interrupt_IDT[26].ignore = 0;
+	interrupt_IDT[26].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[26].offset2 = (uint32_t)&interrupt_isr026 >> 16;
+	
+	interrupt_IDT[27].offset1 = (uint32_t)&interrupt_isr027 & 0xFFFF;
+	interrupt_IDT[27].selector = cs;
+	interrupt_IDT[27].ignore = 0;
+	interrupt_IDT[27].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[27].offset2 = (uint32_t)&interrupt_isr027 >> 16;
+	
+	interrupt_IDT[28].offset1 = (uint32_t)&interrupt_isr028 & 0xFFFF;
+	interrupt_IDT[28].selector = cs;
+	interrupt_IDT[28].ignore = 0;
+	interrupt_IDT[28].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[28].offset2 = (uint32_t)&interrupt_isr028 >> 16;
+	
+	interrupt_IDT[29].offset1 = (uint32_t)&interrupt_isr029 & 0xFFFF;
+	interrupt_IDT[29].selector = cs;
+	interrupt_IDT[29].ignore = 0;
+	interrupt_IDT[29].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[29].offset2 = (uint32_t)&interrupt_isr029 >> 16;
+	
+	interrupt_IDT[30].offset1 = (uint32_t)&interrupt_isr030 & 0xFFFF;
+	interrupt_IDT[30].selector = cs;
+	interrupt_IDT[30].ignore = 0;
+	interrupt_IDT[30].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[30].offset2 = (uint32_t)&interrupt_isr030 >> 16;
+	
+	interrupt_IDT[31].offset1 = (uint32_t)&interrupt_isr031 & 0xFFFF;
+	interrupt_IDT[31].selector = cs;
+	interrupt_IDT[31].ignore = 0;
+	interrupt_IDT[31].flags = IDT_FLAGS_TRAP;
+	interrupt_IDT[31].offset2 = (uint32_t)&interrupt_isr031 >> 16;
 
 	interrupt_IDT[32].offset1 = (uint32_t)&interrupt_irq032 & 0xFFFF;
 	interrupt_IDT[32].selector = cs;
@@ -213,14 +394,177 @@ __attribute__ ((interrupt)) void interrupt_isr002(interruptFrame_t* interruptFra
 	interrupt_Counter[2] += 1;
 }
 
+__attribute__ ((interrupt)) void interrupt_isr003(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 003:, Breakpoint");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr004(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 004, Overflow");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr005(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 005, Bound range exceeded");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr006(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 006, Invalid Opcode");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr007(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 007, Device not available");
+	interrupt_Counter[18] += 1;
+}
+
 __attribute__ ((interrupt)) void interrupt_isr008(interruptFrame_t* interruptFrame) {
 	println("Interrupt: 008, Double fault!");
 	interrupt_Counter[8] += 1;
+	panic();
+}
+
+__attribute__ ((interrupt)) void interrupt_isr009(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 009, Coprocessor segment overrun");
+	interrupt_Counter[9] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr010(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 010, Invalid TSS");
+	interrupt_Counter[10] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr011(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 011, Segment not present");
+	interrupt_Counter[11] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr012(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 012, Stack-Segment fault");
+	interrupt_Counter[12] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr013(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 013, General protection fault");
+	interrupt_Counter[13] += 1;
 }
 
 __attribute__ ((interrupt)) void interrupt_isr014(interruptFrame_t* interruptFrame) {
 	println("Interrupt: 014, Page Fault!");
 	interrupt_Counter[14] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr015(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 015, Intel reserved");
+	interrupt_Counter[15] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr016(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 016, x87 Floating point exception");
+	interrupt_Counter[16] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr017(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 017, Alignment check");
+	interrupt_Counter[17] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr018(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 018, Machine check");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr019(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 019, SIMD floating point exception");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr020(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 020, Virtualization exception");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr021(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 021, Intel reserved");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr022(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 022, Intel reserved");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr023(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 023, Intel reserved");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr024(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 024, Intel reserved");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr025(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 025, Intel reserved");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr026(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 026, Intel reserved");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr027(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 027, Intel reserved");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr028(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 028, Intel reserved");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr029(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 029, Intel reserved");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr030(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 030, Security Exception");
+	interrupt_Counter[18] += 1;
+}
+
+__attribute__ ((interrupt)) void interrupt_isr031(interruptFrame_t* interruptFrame) {
+	// test interrupt
+	println("Interrupt: 031, Intel reserved");
+	interrupt_Counter[18] += 1;
 }
 
 __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFrame) {
@@ -234,6 +578,7 @@ __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFra
 	interrupt_pic_end(32);
 	interrupt_enable();
 }
+
 
 __attribute__ ((interrupt)) void interrupt_irq033(interruptFrame_t* interruptFrame) {
 	// test interrupt
