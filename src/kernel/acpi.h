@@ -52,13 +52,13 @@ typedef struct acpi_sdt_header_t {
 
 typedef struct acpi_rsdt_t {
 	acpi_sdt_header_t acpi_sdt_header;
-	uint32_t tablePointer[];
+	acpi_sdt_header_t* tablePointer[];
 } __attribute__ ((packed)) acpi_rsdt_t;
 
 typedef struct acpi_xsdt_t {
 	acpi_sdt_header_t acpi_sdt_header;
-	uint64_t tablePointer[];
+	acpi_sdt_header_t* tablePointer[];
 } __attribute__ ((packed)) acpi_xsdt_t;
 
 
-bool acpi_init(struct multiboot_tag_old_acpi multiboot_acpi);
+bool acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi);

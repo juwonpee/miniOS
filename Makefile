@@ -1,7 +1,7 @@
 AS = i686-elf-as
 CC = i686-elf-gcc
 CC_INCLUDE = -Isrc/ -Isrc/include/ -Isrc/kernel -Isrc/driver
-CCFLAGS = -Og -ggdb -ffreestanding -Wall -g
+CCFLAGS = -O0 -ggdb -ffreestanding -Wall
 LDFLAGS = -lgcc -nostdlib
 
 SRC_DIR = src

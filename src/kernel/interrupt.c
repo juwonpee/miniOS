@@ -462,6 +462,9 @@ __attribute__ ((interrupt)) void interrupt_isr013(interruptFrame_t* interruptFra
 
 __attribute__ ((interrupt)) void interrupt_isr014(interruptFrame_t* interruptFrame) {
 	println("Interrupt: 014, Page Fault!");
+	char tempString[64];
+	print("Fault occured at: ");
+	println(itoa((uintptr_t) interruptFrame, tempString, 16));
 	interrupt_Counter[14] += 1;
 }
 

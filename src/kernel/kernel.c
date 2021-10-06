@@ -29,8 +29,8 @@
 #include "acpi.h"
 //#include "ata.h"
 
-struct multiboot_tag_basic_meminfo multiboot_meminfo;
-struct multiboot_tag_old_acpi multiboot_acpi;
+struct multiboot_tag_basic_meminfo* multiboot_meminfo;
+struct multiboot_tag_old_acpi* multiboot_acpi;
 
 bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
     char tempString[64];
@@ -63,10 +63,10 @@ bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
                 println(((struct multiboot_tag_string*)mbi) -> string);
                 break;
             case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
-                multiboot_meminfo = (*(struct multiboot_tag_basic_meminfo*)mbi);
+                multiboot_meminfo = (struct multiboot_tag_basic_meminfo*)mbi;
                 break;
             case MULTIBOOT_TAG_TYPE_ACPI_OLD:
-                multiboot_acpi = (*(struct multiboot_tag_old_acpi*)mbi);
+                multiboot_acpi = (struct multiboot_tag_old_acpi*)mbi;
                 break;
         }    
     }
@@ -87,6 +87,15 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
     }
     else {
         println("Error while checking Boot Information");
+        panic();
+    }
+
+    print("Initializing ACPI tables... ");
+    if (!acpi_init(multiboot_acpi)) {
+        println("OK");
+    }
+    else {
+        println("Error Initializing ACPI");
         panic();
     }
 
@@ -115,15 +124,6 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
     }
     else {
         println ("Error Initializing Interrupts");
-        panic();
-    }
-
-    print("Initializing ACPI tables... ");
-    if (!acpi_init(multiboot_acpi)) {
-        println("OK");
-    }
-    else {
-        println("Error Initializing ACPI");
         panic();
     }
 

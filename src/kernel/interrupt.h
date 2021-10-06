@@ -79,6 +79,7 @@ EAX=1:
 #include "io.h"
 #include "pit.h"
 #include "string.h"
+#include "memory.h"
 
 #define PIC1					0x20								/* IO base address for master PIC */
 #define PIC2					0xA0								/* IO base address for slave PIC */
