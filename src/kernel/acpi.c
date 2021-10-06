@@ -29,7 +29,6 @@ bool acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
 		}
 	}
 
-
 	if (rsdp -> revision == 0) {
 		println("ACPI Version 1");
 	}
@@ -40,10 +39,19 @@ bool acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
 	// Get RSDT
 	acpi_rsdt_t* rsdt = (acpi_rsdt_t*)((uintptr_t)(rsdp -> rsdtAddress));
 
+	// Check % verify rsdt
+	for (int i = 0; i < 4; i++) {
+		char rsdtSignature[] = "RSDT";
+		if (rsdt->acpi_sdt_header.signature[i] != rsdtSignature[i]) {
+			println("Incorrect rsdt, are you sure you're using a multiboot2 compliant bootloader?");
+			return true;
+		}
+	}
+
 	// Get ACPI tables
 	int entries = (rsdt -> acpi_sdt_header.length - sizeof(rsdt->acpi_sdt_header)) / 4;
 	for (int i = 0; i < entries; i++) {
-		acpi_sdt_header_t* header = rsdt->tablePointer;
+		acpi_sdt_header_t* header = rsdt->tablePointer[i];
 		printChar(header->signature[0]);
 		printChar(header->signature[1]);
 		printChar(header->signature[2]);
