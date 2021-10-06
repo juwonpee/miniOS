@@ -85,7 +85,7 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
     // Variables to initialize memory;
     void* usableFirstPageAddress;
     void* usableLastPageAddress;
-    void* finalPageAddress = 0xFFFFF000;
+    void* finalPageAddress = (void*)0xFFFFF000;
 
     // some housekeeping stuff
     kstart = heapStart;
@@ -94,8 +94,8 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
 /*                                          Memory Type                                          */
 /*-----------------------------------------------------------------------------------------------*/
 
-    usableFirstPageAddress = (void*)(multiboot_meminfo -> mem_lower * 1024);
-    usableLastPageAddress = (void*) (multiboot_meminfo -> mem_upper * 1024 + (uint32_t)usableFirstPageAddress);
+    usableFirstPageAddress = (void*)(multiboot_meminfo->mem_lower * 1024);
+    usableLastPageAddress = (void*) (multiboot_meminfo->mem_upper * 1024 + (uint32_t)usableFirstPageAddress);
     
 
 /*-----------------------------------------------------------------------------------------------*/
@@ -205,4 +205,10 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
     );
 
     return false;
+}
+
+bool memory_if_exists(void* addr) {
+    for (int i = 0; i < 1024; i++) {
+        
+    }
 }

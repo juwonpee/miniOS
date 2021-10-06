@@ -17,6 +17,7 @@
 
 
 #include "types.h"
+#include "kernel.h"
 #include "io.h"
 #include "print.h"
 #include "memory.h"
@@ -25,39 +26,54 @@
 #include "interrupt.h"
 #include "pci.h"
 #include "multiboot2.h"
+#include "acpi.h"
 //#include "ata.h"
 
 struct multiboot_tag_basic_meminfo* multiboot_meminfo;
-struct multiboot_tag_new_acpi* multiboot_acpi;
+struct multiboot_tag_old_acpi* multiboot_acpi;
 
-void bootInfo(uint32_t magic, uint32_t addr) {
-    char* tempString[64];
+bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
+    char tempString[64];
 
     /* Make sure the magic number matches for memory mapping*/
     if(magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
-        println("Fatal Error: Invalid magic number");
-        print("Check multiboot magic number: ");
+        println("Fatal Error: Invalid multiboot2 magic number");
+        print("Check if booted by multiboot2 compliant bootloader");
         println(itoa(magic, tempString, 16));
-        panic();
+        return ATA_TRUSTED_RECIEVE;
     }
 
-    if (addr & 7) {
+    if ((uintptr_t)addr & 7) {
         println("Unaligned MBI");       // Whatever mbi is
-        panic();
+        return true;;
     }
-    for (struct multiboot_tag* mbi = (struct multiboot_tag*)(addr + 8); mbi -> type != MULTIBOOT_TAG_TYPE_END; mbi = (struct multiboot_tag *) ((multiboot_uint8_t *) mbi + ((mbi->size + 7) & ~7))) {
+
+    for (
+        struct multiboot_tag* mbi = (struct multiboot_tag*)((uintptr_t)(addr) + sizeof(struct multiboot_tag_header)); 
+        (uintptr_t)mbi < addr -> total_size + (uintptr_t)addr; 
+        mbi = (struct multiboot_tag*)(((uintptr_t)mbi) + mbi -> size)
+    ) {
+        // 8 byte alignment
+        if ((uintptr_t)mbi % 8 != 0) {
+            mbi = (struct multiboot_tag*)(((uintptr_t)mbi & 0xFFFFFFF8) + 0x8);
+        }
         switch (mbi -> type) {
+            case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
+                print("Bootloader: ");
+                println(((struct multiboot_tag_string*)mbi) -> string);
+                break;
             case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
                 multiboot_meminfo = (struct multiboot_tag_basic_meminfo*)mbi;
                 break;
-            case MULTIBOOT_TAG_TYPE_ACPI_NEW:
-                multiboot_acpi = (struct multiboot_tag_new_acpi*)mbi;
+            case MULTIBOOT_TAG_TYPE_ACPI_OLD:
+                multiboot_acpi = (struct multiboot_tag_old_acpi*)mbi;
                 break;
-        }
+        }    
     }
+    return false;
 }
 
-void kernel_init(uint32_t magic, uint32_t addr, void* heapStart, uint16_t cs) {
+void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapStart) {
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
@@ -65,7 +81,23 @@ void kernel_init(uint32_t magic, uint32_t addr, void* heapStart, uint16_t cs) {
     serialInit();
 
     // Check GRUB/EFI system tables
-    bootInfo(magic, addr);
+    print("Checking Boot Information... ");
+    if (!bootInfo(magic, addr)) {
+        println("OK");
+    }
+    else {
+        println("Error while checking Boot Information");
+        panic();
+    }
+
+    print("Initializing ACPI tables... ");
+    if (!acpi_init(multiboot_acpi)) {
+        println("OK");
+    }
+    else {
+        println("Error Initializing ACPI");
+        panic();
+    }
 
     // Init memory
     print("Initializing memory... ");
@@ -81,6 +113,12 @@ void kernel_init(uint32_t magic, uint32_t addr, void* heapStart, uint16_t cs) {
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
     print("Initializing Interrupts... ");
+    uint16_t cs;
+    asm volatile (
+        "mov %%cs, %0" 
+        : "=r" (cs)
+        : 
+    );
     if (!interrupt_init(cs)) {
         println("OK");
     }
