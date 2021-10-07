@@ -31,6 +31,7 @@
 
 struct multiboot_tag_basic_meminfo* multiboot_meminfo;
 struct multiboot_tag_old_acpi* multiboot_acpi;
+acpi_master_table_t acpi_master_table;
 
 bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
     char tempString[64];
@@ -91,7 +92,8 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
     }
 
     print("Initializing ACPI tables... ");
-    if (!acpi_init(multiboot_acpi)) {
+    acpi_master_table = acpi_init(multiboot_acpi);
+    if (!acpi_master_table.OK) {
         println("OK");
     }
     else {
