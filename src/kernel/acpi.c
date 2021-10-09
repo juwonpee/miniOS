@@ -25,7 +25,7 @@ acpi_master_table_t acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
 	acpi_rsdp_descriptor_t* rsdp = (acpi_rsdp_descriptor_t*)&(multiboot_acpi->rsdp);
 
 	// Check & verify rsdp
-	if (strcmp_notnull(&rsdp->signature, "RSD PTR ", 8)) {
+	if (strcmp_notnull(&rsdp->signature[0], "RSD PTR ", 8)) {
 		println("Error: Unable to find RSDP table, Requires ACPI compliant bootloader/bios");
 		master_table.OK = true;
 		return master_table;

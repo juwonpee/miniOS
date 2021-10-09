@@ -18,6 +18,7 @@
 #include "io.h"
 #include "print.h"
 #include "pit.h"
+#include "interrupt.h"
 
 #define ATA_PRIMARY_IRQ						15
 #define ATA_SECONDARY_IRQ					14
@@ -91,6 +92,20 @@
 #define ATA_SECURITY_DISABLE_PASSWORD		0xF6
 
 
+typedef enum ata_status_t {
+	normal, error, AMNF, TKZNF, ABRT, MCR, IDNF, MC, UNC, BBK
+} ata_status_t ;
+
 bool ata_init();
 
-bool ata_read_sector();
+bool ata_primary_read_sector_request(uint64_t lba);
+
+bool ata_secondary_read_sector_request(uint64_t lba);
+
+ata_status_t ata_primary_read_sector();
+
+ata_status_t ata_primary_write_sector(uint64_t lba, char* data, uint64_t length);
+
+ata_status_t ata_secondary_read_sector();
+
+ata_status_t ata_primary_write_sector(uint64_t lba, char* data, uint64_t length);

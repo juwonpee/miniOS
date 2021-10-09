@@ -16,7 +16,8 @@
 
 #include "ata.h"
 
-uint8_t sectorData[512];
+uint8_t primarySectorData[512];
+uint8_t secondarySectorData[512];
 
 typedef enum primaryStatus {
 	identify, read, write
@@ -39,10 +40,12 @@ bool ata_init() {
 	uint64_t driveStartTime = pit_get_time_since_boot();
 	while (1) {
 		if (driveStartTime + 5 > pit_get_time_since_boot()) {
-			if (inb(ATA_PRIMARY_STATUS_R) & 0x08) {
-				if (inb(ATA_PRIMARY_STATUS_R) & 0x80) {
-					break;
-				}
+			if ((inb(ATA_PRIMARY_STATUS_R) & 0x80) == 0) {
+				break;
+			}
+			else if ((inb(ATA_PRIMARY_CYLINDER_LOW_RW) != 0) & (inb(ATA_PRIMARY_CYLINDER_HIGH_RW) != 0)) {
+				println("Primary drive not ATA drive, reccomend changing drive configuration");
+				return true;
 			}
 		}
 		else {
@@ -50,6 +53,7 @@ bool ata_init() {
 			return true;
 		}
 	}
+
 
 	// Identify secondary drive
 	outb(ATA_SECONDARY_DRIVE_HEAD_RW, 0xA0);
@@ -70,20 +74,82 @@ bool ata_init() {
 			if (inb(ATA_SECONDARY_STATUS_R) & 0x08) {
 				break;
 			}
+			else if ((inb(ATA_SECONDARY_CYLINDER_LOW_RW) != 0) & (inb(ATA_SECONDARY_CYLINDER_HIGH_RW) != 0)) {
+				println("Secondary drive not ATA drive, reccomend changing drive configuration");
+				break;
+			}
 		}
 		else {
 			println("Secondary drive not functioning, Reccomend soft reboot");
-			return true;
 		}
 	}
-
 	return false;
 }
 
-bool ata_read_sector() {
-	for (int x = 0; x < 256; x++) {
-		sectorData[x*2] = inw(ATA_PRIMARY_DATA_RW);
+ata_status_t ata_primary_read_sector() {
+	if (inb(ATA_PRIMARY_STATUS_R) & 0x08) {
+		for (int x = 0; x < 256; x++) {
+			primarySectorData[x*2] = inw(ATA_PRIMARY_DATA_RW);
+		}
+		return normal;
 	}
-	println("ATA read");
-	return false;
+	else if (inb(ATA_PRIMARY_STATUS_R) & 0x01) {
+		return AMNF;
+	}
+	else if (inb(ATA_PRIMARY_STATUS_R) & 0x02) {
+		return TKZNF;
+	}
+	else if (inb(ATA_PRIMARY_STATUS_R) & 0x04) {
+		return ABRT;
+	}
+	else if (inb(ATA_PRIMARY_STATUS_R) & 0x08) {
+		return MCR;
+	}
+	else if (inb(ATA_PRIMARY_STATUS_R) & 0x10) {
+		return IDNF;
+	}
+	else if (inb(ATA_PRIMARY_STATUS_R) & 0x20) {
+		return MC;
+	}
+	else if (inb(ATA_PRIMARY_STATUS_R) & 0x40) {
+		return UNC;
+	}
+	else if (inb(ATA_PRIMARY_STATUS_R) & 0x80) {
+		return BBK;
+	}
+	return error;
+}
+
+ata_status_t ata_secondary_read_sector() {
+	if (inb(ATA_SECONDARY_STATUS_R) & 0x08) {
+		for (int x = 0; x < 256; x++) {
+			secondarySectorData[x*2] = inw(ATA_SECONDARY_DATA_RW);
+		}
+		return normal;
+	}
+	else if (inb(ATA_SECONDARY_STATUS_R) & 0x01) {
+		return AMNF;
+	}
+	else if (inb(ATA_SECONDARY_STATUS_R) & 0x02) {
+		return TKZNF;
+	}
+	else if (inb(ATA_SECONDARY_STATUS_R) & 0x04) {
+		return ABRT;
+	}
+	else if (inb(ATA_SECONDARY_STATUS_R) & 0x08) {
+		return MCR;
+	}
+	else if (inb(ATA_SECONDARY_STATUS_R) & 0x10) {
+		return IDNF;
+	}
+	else if (inb(ATA_SECONDARY_STATUS_R) & 0x20) {
+		return MC;
+	}
+	else if (inb(ATA_SECONDARY_STATUS_R) & 0x40) {
+		return UNC;
+	}
+	else if (inb(ATA_SECONDARY_STATUS_R) & 0x80) {
+		return BBK;
+	}
+	return error;
 }

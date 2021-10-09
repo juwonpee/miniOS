@@ -20,5 +20,20 @@
 #include "multiboot2.h"
 #include "acpi.h"
 
+#define PCI_CONFIG_ADDRESS 			0xCF8
+#define PCI_CONFIG_DATA				0xCFC
+#define PCI_FORWARDING_REGISTER		0xCFA
 
-bool pci_init(struct multiboot_tag_old_acpi* multiboot_acpi);
+
+typedef struct pci_device_config {
+	uint64_t baseAddress;
+	uint16_t PCISegGroup;
+	uint8_t startBus;
+	uint8_t endBus;
+	uint32_t reserved;
+} __attribute__ ((packed)) pci_device_config;
+
+typedef struct pci_command_register {
+};
+
+bool pci_init(acpi_master_table_t acpi_master_table);

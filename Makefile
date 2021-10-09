@@ -58,26 +58,26 @@ check_multiboot:
 
 run:
 	$(QEMU) \
-		-m 256M -M q35\
+		-m 256M \
 		-hda $(OUTPUT_IMAGE) \
 		-nographic 
 
 run_debug:	
 	$(QEMU) \
-		-m 256M -M q35\
+		-m 256M \
 		-hda $(OUTPUT_IMAGE) \
 		-nographic \
 		-S -s
 
 run_no_grub:	
 	$(QEMU) \
-		-m 256M -M q35\
+		-m 256M \
 		-kernel $(OUTPUT) \
 		-nographic 
 
 run_no_grub_debug:	
 	$(QEMU) \
-		-m 256M -M q35\
+		-m 256M \
 		-kernel $(OUTPUT) \
 		-nographic \
 		-S -s
