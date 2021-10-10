@@ -99,13 +99,9 @@ typedef enum ata_status_t {
 bool ata_init();
 
 bool ata_primary_read_sector_request(uint64_t lba);
+ata_status_t ata_primary_read_sector();
+ata_status_t ata_primary_write_sector(uint64_t lba, char* data);
 
 bool ata_secondary_read_sector_request(uint64_t lba);
-
-ata_status_t ata_primary_read_sector();
-
-ata_status_t ata_primary_write_sector(uint64_t lba, char* data, uint64_t length);
-
 ata_status_t ata_secondary_read_sector();
-
-ata_status_t ata_primary_write_sector(uint64_t lba, char* data, uint64_t length);
+ata_status_t ata_primary_write_sector(uint64_t lba, char* data);

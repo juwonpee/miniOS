@@ -86,6 +86,10 @@ bool ata_init() {
 	return false;
 }
 
+bool ata_primary_read_sector_request(uint64_t lba) {
+
+}
+
 ata_status_t ata_primary_read_sector() {
 	if (inb(ATA_PRIMARY_STATUS_R) & 0x08) {
 		for (int x = 0; x < 256; x++) {
@@ -120,6 +124,11 @@ ata_status_t ata_primary_read_sector() {
 	return error;
 }
 
+ata_status_t ata_primary_write_sector(uint64_t lba, char* data) {
+
+}
+
+
 ata_status_t ata_secondary_read_sector() {
 	if (inb(ATA_SECONDARY_STATUS_R) & 0x08) {
 		for (int x = 0; x < 256; x++) {
@@ -153,3 +162,4 @@ ata_status_t ata_secondary_read_sector() {
 	}
 	return error;
 }
+
