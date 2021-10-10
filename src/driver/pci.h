@@ -33,7 +33,4 @@ typedef struct pci_device_config {
 	uint32_t reserved;
 } __attribute__ ((packed)) pci_device_config;
 
-typedef struct pci_command_register {
-};
-
 bool pci_init(acpi_master_table_t acpi_master_table);

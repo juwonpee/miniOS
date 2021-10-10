@@ -16,8 +16,11 @@
 
 #include "ata.h"
 
-uint8_t primarySectorData[512];
-uint8_t secondarySectorData[512];
+ata_sector_data_t primarySectorData;
+ata_sector_data_t secondarySectorData;
+
+bool primary_lock = false;
+bool secondary_lock = false;
 
 typedef enum primaryStatus {
 	identify, read, write
@@ -81,85 +84,154 @@ bool ata_init() {
 		}
 		else {
 			println("Secondary drive not functioning, Reccomend soft reboot");
+			return false;
 		}
 	}
 	return false;
 }
 
-bool ata_primary_read_sector_request(uint64_t lba) {
+// PRIMARY ATA DRIVE BUS
+ata_sector_data_t ata_primary_read(uint64_t lba) {
+	primary_lock = true;
+	ata_primary_read_sector_request(lba);
+	while (1) {
+		if (!primary_lock) {
+			return primarySectorData;
+		}
+	}
+}
 
+bool ata_primary_read_sector_request(uint64_t lba) {
+	outb(ATA_PRIMARY_DRIVE_HEAD_RW, 0x40);														// Select master drive
+	outb(ATA_PRIMARY_SECTOR_COUNT_RW, 0);														// Sector count high byte
+	outb(ATA_PRIMARY_SECTOR_NUMBER_RW, (uint8_t)(lba >> 24));									// lba byte 4
+	outb(ATA_PRIMARY_CYLINDER_LOW_RW, (uint8_t)(lba >> 32));									// lba byte 5
+	outb(ATA_PRIMARY_CYLINDER_HIGH_RW, (uint8_t)(lba >> 40));									// lba byte 6
+	outb(ATA_PRIMARY_SECTOR_COUNT_RW, 1);														// Sector count low byte
+	outb(ATA_PRIMARY_SECTOR_NUMBER_RW, (uint8_t)(lba));											// lba byte 1
+	outb(ATA_PRIMARY_CYLINDER_LOW_RW, (uint8_t)(lba >> 8));										// lba byte 2
+	outb(ATA_PRIMARY_CYLINDER_HIGH_RW, (uint8_t)lba >> 16);										// lba byte 3
+	outb(ATA_PRIMARY_COMMAND_W, ATA_READ_SECTOR);
+	return false;
 }
 
 ata_status_t ata_primary_read_sector() {
 	if (inb(ATA_PRIMARY_STATUS_R) & 0x08) {
 		for (int x = 0; x < 256; x++) {
-			primarySectorData[x*2] = inw(ATA_PRIMARY_DATA_RW);
+			primarySectorData.data[x*2] = inw(ATA_PRIMARY_DATA_RW);
 		}
+		primary_lock = false;
 		return normal;
 	}
-	else if (inb(ATA_PRIMARY_STATUS_R) & 0x01) {
+	else if (inb(ATA_PRIMARY_ERROR_R) & 0x01) {
+		primary_lock = false;
 		return AMNF;
 	}
-	else if (inb(ATA_PRIMARY_STATUS_R) & 0x02) {
+	else if (inb(ATA_PRIMARY_ERROR_R) & 0x02) {
+		primary_lock = false;
 		return TKZNF;
 	}
-	else if (inb(ATA_PRIMARY_STATUS_R) & 0x04) {
+	else if (inb(ATA_PRIMARY_ERROR_R) & 0x04) {
+		primary_lock = false;
 		return ABRT;
 	}
-	else if (inb(ATA_PRIMARY_STATUS_R) & 0x08) {
+	else if (inb(ATA_PRIMARY_ERROR_R) & 0x08) {
+		primary_lock = false;
 		return MCR;
 	}
-	else if (inb(ATA_PRIMARY_STATUS_R) & 0x10) {
+	else if (inb(ATA_PRIMARY_ERROR_R) & 0x10) {
+		primary_lock = false;
 		return IDNF;
 	}
-	else if (inb(ATA_PRIMARY_STATUS_R) & 0x20) {
+	else if (inb(ATA_PRIMARY_ERROR_R) & 0x20) {
+		primary_lock = false;
 		return MC;
 	}
-	else if (inb(ATA_PRIMARY_STATUS_R) & 0x40) {
+	else if (inb(ATA_PRIMARY_ERROR_R) & 0x40) {
+		primary_lock = false;
 		return UNC;
 	}
-	else if (inb(ATA_PRIMARY_STATUS_R) & 0x80) {
+	else if (inb(ATA_PRIMARY_ERROR_R) & 0x80) {
+		primary_lock = false;
 		return BBK;
 	}
+	primary_lock = false;
 	return error;
 }
 
-ata_status_t ata_primary_write_sector(uint64_t lba, char* data) {
-
+bool ata_primary_write_sector(uint64_t lba, char* data) {
+	return false;
 }
 
+// SECONDARY ATA DRIVE BUS
+ata_sector_data_t ata_secondary_read(uint64_t lba) {
+	secondary_lock = true;
+	ata_secondary_read_sector_request(lba);
+	while (1) {
+		if (!secondary_lock) {
+			return secondarySectorData;
+		}
+	}
+}
+
+bool ata_secondary_read_sector_request(uint64_t lba) {
+	outb(ATA_SECONDARY_DRIVE_HEAD_RW, 0x40);													// Select master drive
+	outb(ATA_SECONDARY_SECTOR_COUNT_RW, 0);														// Sector count high byte
+	outb(ATA_SECONDARY_SECTOR_NUMBER_RW, (uint8_t)(lba >> 24));									// lba byte 4
+	outb(ATA_SECONDARY_CYLINDER_LOW_RW, (uint8_t)(lba >> 32));									// lba byte 5
+	outb(ATA_SECONDARY_CYLINDER_HIGH_RW, (uint8_t)(lba >> 40));									// lba byte 6
+	outb(ATA_SECONDARY_SECTOR_COUNT_RW, 1);														// Sector count low byte
+	outb(ATA_SECONDARY_SECTOR_NUMBER_RW, (uint8_t)(lba));										// lba byte 1
+	outb(ATA_SECONDARY_CYLINDER_LOW_RW, (uint8_t)(lba >> 8));									// lba byte 2
+	outb(ATA_SECONDARY_CYLINDER_HIGH_RW, (uint8_t)lba >> 16);									// lba byte 3
+	outb(ATA_SECONDARY_COMMAND_W, ATA_READ_SECTOR);
+	return false;
+}
 
 ata_status_t ata_secondary_read_sector() {
 	if (inb(ATA_SECONDARY_STATUS_R) & 0x08) {
 		for (int x = 0; x < 256; x++) {
-			secondarySectorData[x*2] = inw(ATA_SECONDARY_DATA_RW);
+			secondarySectorData.data[x*2] = inw(ATA_SECONDARY_DATA_RW);
 		}
+		secondary_lock = false;
 		return normal;
 	}
-	else if (inb(ATA_SECONDARY_STATUS_R) & 0x01) {
+	else if (inb(ATA_SECONDARY_ERROR_R) & 0x01) {
+		secondary_lock = false;
 		return AMNF;
 	}
-	else if (inb(ATA_SECONDARY_STATUS_R) & 0x02) {
+	else if (inb(ATA_SECONDARY_ERROR_R) & 0x02) {
+		secondary_lock = false;
 		return TKZNF;
 	}
-	else if (inb(ATA_SECONDARY_STATUS_R) & 0x04) {
+	else if (inb(ATA_SECONDARY_ERROR_R) & 0x04) {
+		secondary_lock = false;
 		return ABRT;
 	}
-	else if (inb(ATA_SECONDARY_STATUS_R) & 0x08) {
+	else if (inb(ATA_SECONDARY_ERROR_R) & 0x08) {
+		secondary_lock = false;
 		return MCR;
 	}
-	else if (inb(ATA_SECONDARY_STATUS_R) & 0x10) {
+	else if (inb(ATA_SECONDARY_ERROR_R) & 0x10) {
+		secondary_lock = false;
 		return IDNF;
 	}
-	else if (inb(ATA_SECONDARY_STATUS_R) & 0x20) {
+	else if (inb(ATA_SECONDARY_ERROR_R) & 0x20) {
+		secondary_lock = false;
 		return MC;
 	}
-	else if (inb(ATA_SECONDARY_STATUS_R) & 0x40) {
+	else if (inb(ATA_SECONDARY_ERROR_R) & 0x40) {
+		secondary_lock = false;
 		return UNC;
 	}
-	else if (inb(ATA_SECONDARY_STATUS_R) & 0x80) {
+	else if (inb(ATA_SECONDARY_ERROR_R) & 0x80) {
+		secondary_lock = false;
 		return BBK;
 	}
+	secondary_lock = false;
 	return error;
 }
 
+bool ata_secondary_write_sector(uint64_t lba, char* data) {
+	return false;
+}

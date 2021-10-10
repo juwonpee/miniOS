@@ -32,4 +32,5 @@ void enumerate_function(uint64_t address, uint64_t function) {
 bool pci_init(acpi_master_table_t acpi_master_table) {
 	acpi_MCFG_t MCFG = acpi_master_table.MCFG;
 	//int entries = (MCFG.header.length - sizeof(acpi_MCFG_t)) / sizeof(acpi_device_config)
+	return false;
 }

@@ -209,6 +209,6 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
 
 bool memory_if_exists(void* addr) {
     for (int i = 0; i < 1024; i++) {
-        
     }
+    return false;
 }

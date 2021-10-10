@@ -25,7 +25,7 @@ acpi_master_table_t acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
 	acpi_rsdp_descriptor_t* rsdp = (acpi_rsdp_descriptor_t*)&(multiboot_acpi->rsdp);
 
 	// Check & verify rsdp
-	if (strcmp_notnull(&rsdp->signature[0], "RSD PTR ", 8)) {
+	if (strcmp_notnull((char*)rsdp->signature, "RSD PTR ", 8)) {
 		println("Error: Unable to find RSDP table, Requires ACPI compliant bootloader/bios");
 		master_table.OK = true;
 		return master_table;
@@ -43,7 +43,7 @@ acpi_master_table_t acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
 	acpi_rsdt_t* rsdt = (acpi_rsdt_t*)((uintptr_t)(rsdp -> rsdtAddress));
 
 	// Check & verify rsdt
-	if (strcmp_notnull(&rsdt->acpi_sdt_header.signature, "RSDT", 4)) {
+	if (strcmp_notnull((char*)rsdt->acpi_sdt_header.signature, "RSDT", 4)) {
 		println("Error: Unable to find RSDT table, Requires ACPI compliant bootloader/bios");
 		master_table.OK = true;
 		return master_table;
@@ -53,7 +53,7 @@ acpi_master_table_t acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
 	int entries = (rsdt -> acpi_sdt_header.length - sizeof(rsdt->acpi_sdt_header)) / 4;
 	for (int i = 0; i < entries; i++) {
 		acpi_sdt_header_t* header = rsdt->tablePointer[i];
-		if (!strcmp_notnull(&header->signature, "MCFG", 4)) {
+		if (!strcmp_notnull((char*)header->signature, "MCFG", 4)) {
 			master_table.MCFG = (*(acpi_MCFG_t*)header);
 		}
 	}

@@ -146,6 +146,9 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         println ("Error Initializing Drive");
         panic();
     }
+    ata_sector_data_t data = ata_secondary_read(1);
+    data.data[512] = '\0';
+    println((char*)data.data);
     
     println("Welcome to miniOS!");
     while(1) {
