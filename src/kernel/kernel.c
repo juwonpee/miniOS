@@ -75,6 +75,7 @@ bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
 }
 
 void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapStart) {
+
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
@@ -146,9 +147,24 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         println ("Error Initializing Drive");
         panic();
     }
-    ata_sector_data_t data = ata_secondary_read(1);
+    ata_sector_data_t data = ata_primary_read(2);
     data.data[512] = '\0';
     println((char*)data.data);
+
+    char hello[] = "Hello World!";
+
+    char* test1 = malloc(513);
+    memcpy(test1, hello, 13);
+
+    char* test2 = malloc(16);
+    memcpy(test2, hello, 13);
+
+    free(test1);
+    test1 = malloc(256);
+
+    free(test2);
+    test2 = malloc(1024);
+    
     
     println("Welcome to miniOS!");
     while(1) {

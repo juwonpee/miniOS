@@ -23,11 +23,12 @@
 #include "multiboot2.h"
 #include "driver/print.h"
 #include "string.h"
+#include "panic.h"
 
 #define UHEAP_START 0x4000000   // from 64MB for userland code heap paging
 #define nullptr (void*)0x0
 
-typedef struct pageDirectoryCR3_t {
+typedef struct memory_pageDirectoryCR3_t {
     union {
         uint32_t data;
         struct {
@@ -38,9 +39,9 @@ typedef struct pageDirectoryCR3_t {
             uint32_t address:20;
         };
     };
-} __attribute__ ((packed)) pageDirectoryCR3_t;
+} __attribute__ ((packed)) memory_pageDirectoryCR3_t;
 
-typedef struct pageDirectory_t {
+typedef struct memory_pageDirectory_t {
     union {
         uint32_t data;
         struct {
@@ -56,9 +57,9 @@ typedef struct pageDirectory_t {
             uint32_t address:20;
         };
     };
-} __attribute__ ((packed)) pageDirectory_t;
+} __attribute__ ((packed)) memory_pageDirectory_t;
 
-typedef struct pageTable_t {
+typedef struct memory_pageTable_t {
     union {
         uint32_t data;
         struct {
@@ -75,14 +76,23 @@ typedef struct pageTable_t {
             uint32_t address:20;
         };
     };
-} __attribute__ ((packed)) pageTable_t;
+} __attribute__ ((packed)) memory_pageTable_t;
 
 
+typedef struct memory_pageTable_owner_t {
+    memory_pageTable_t* page;
+    bool free;
+    uintptr_t pid;
+} memory_pageTable_owner_t;
 
+void* malloc(uintptr_t size);
 
-
-void* malloc(uint32_t size);
 void free(void* address);
+
+void memset(void* address, char value, uintptr_t size);
+
+void memcpy(void* dest, void* src, uintptr_t size);
+
 bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* heapStart);
 
 // Convenience functions

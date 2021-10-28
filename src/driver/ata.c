@@ -13,7 +13,6 @@
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-
 #include "ata.h"
 
 ata_sector_data_t primarySectorData;
@@ -100,7 +99,6 @@ ata_sector_data_t ata_primary_read(uint64_t lba) {
 		}
 	}
 }
-
 bool ata_primary_read_sector_request(uint64_t lba) {
 	outb(ATA_PRIMARY_DRIVE_HEAD_RW, 0x40);														// Select master drive
 	outb(ATA_PRIMARY_SECTOR_COUNT_RW, 0);														// Sector count high byte
@@ -114,8 +112,7 @@ bool ata_primary_read_sector_request(uint64_t lba) {
 	outb(ATA_PRIMARY_COMMAND_W, ATA_READ_SECTOR);
 	return false;
 }
-
-ata_status_t ata_primary_read_sector() {
+ata_error_t ata_primary_read_sector() {
 	if (inb(ATA_PRIMARY_STATUS_R) & 0x08) {
 		for (int x = 0; x < 256; x++) {
 			primarySectorData.data[x*2] = inw(ATA_PRIMARY_DATA_RW);
@@ -159,7 +156,8 @@ ata_status_t ata_primary_read_sector() {
 	return error;
 }
 
-bool ata_primary_write_sector(uint64_t lba, char* data) {
+
+bool ata_primary_write_sector(uint64_t lba, ata_sector_data_t data) {
 	return false;
 }
 
@@ -173,7 +171,6 @@ ata_sector_data_t ata_secondary_read(uint64_t lba) {
 		}
 	}
 }
-
 bool ata_secondary_read_sector_request(uint64_t lba) {
 	outb(ATA_SECONDARY_DRIVE_HEAD_RW, 0x40);													// Select master drive
 	outb(ATA_SECONDARY_SECTOR_COUNT_RW, 0);														// Sector count high byte
@@ -187,8 +184,7 @@ bool ata_secondary_read_sector_request(uint64_t lba) {
 	outb(ATA_SECONDARY_COMMAND_W, ATA_READ_SECTOR);
 	return false;
 }
-
-ata_status_t ata_secondary_read_sector() {
+ata_error_t ata_secondary_read_sector() {
 	if (inb(ATA_SECONDARY_STATUS_R) & 0x08) {
 		for (int x = 0; x < 256; x++) {
 			secondarySectorData.data[x*2] = inw(ATA_SECONDARY_DATA_RW);
@@ -232,6 +228,6 @@ ata_status_t ata_secondary_read_sector() {
 	return error;
 }
 
-bool ata_secondary_write_sector(uint64_t lba, char* data) {
+bool ata_secondary_write_sector(uint64_t lba, ata_sector_data_t data) {
 	return false;
 }

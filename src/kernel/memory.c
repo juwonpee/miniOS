@@ -19,57 +19,103 @@
 #include "memory.h"
 
 
-uint32_t* kstart;
-static uint32_t* ustart = (void*) UHEAP_START;
+uintptr_t* kstart;
+static uintptr_t* ustart = (void*) UHEAP_START;
 
-volatile pageDirectoryCR3_t pageDirectoryCR3;
-alignas(4096) volatile pageDirectory_t pageDirectory[1024];
-alignas(4096) volatile pageTable_t pageTable[1024][1024];
+uintptr_t* usable_first_address;
+uintptr_t* usable_last_address;
 
-void* malloc(uint32_t size) {
-    uint32_t* index = kstart;
-    while ((uint32_t) index < (uint32_t) ustart) {
-        if ((*index) == 0) {
-            uint32_t* blockIndex = index + 1;
-            uint32_t blockSize = 0;
-            while ((uint32_t) blockIndex < (uint32_t)ustart) {
-                if ((*blockIndex) == 0) {
-                    blockSize += 4;
-                    if (size <= blockSize) {
-                        (*index) = size;
-                        return (void*)(index + 1);
-                    }
-                    else {
-                        blockIndex += 1;
-                    }
-                }
-                else {
-                    index += blockSize + 1;
+volatile memory_pageDirectoryCR3_t pageDirectoryCR3;
+alignas(4096) volatile memory_pageDirectory_t pageDirectory[1024];
+alignas(4096) volatile memory_pageTable_t pageTable[1024][1024];
+
+
+void* malloc(uintptr_t size) {
+    // All memory allocations are word size aligned
+    if (size <= 0xFFFFFFFC) {
+        if (size % 0x4) {
+            size = size & 0xFFFFFFFC;
+            size += 4;
+        }
+    }
+    else {
+        println("Memory alloc request too large");
+        panic();
+    }
+
+    uintptr_t* index = usable_first_address + 4096;
+    uintptr_t* data;
+
+    while (1) {
+        data = index + 1;
+        if ((*index) == 0) {                                                                        // Block is empty
+            // Check if block is big enough
+            bool fit = true;
+            for (uintptr_t* blockIndex = data; (*data) < (*data) + size; blockIndex++) {
+                if ((*blockIndex) != 0) {
+                    fit = false;
+                    index = (uintptr_t*)((uintptr_t)index + (*index));
                     break;
                 }
             }
-            
+            // If block big enough
+            if (fit == true) {
+                (*index) = size;
+                // zero block
+                for (uintptr_t* blockIndex = data; blockIndex < data + size; blockIndex++) {
+                    if (*blockIndex) {
+                        (*blockIndex) = 0;
+                    }
+                }
+                return (void*) data;
+            }
         }
         else {
-            index += 1;
+            index = (uintptr_t*)((uintptr_t)index + (*index) + sizeof(uintptr_t));
         }
+        index++;
     }
-
-    // If out of bounds;
-    println("Out of kernel memory, aborting malloc");
-    return nullptr;
 }
 
 void free(void* address) {
-    uint32_t* tempIndex = (uint32_t*)(address - 4);
-    uint32_t tempSize = (*tempIndex);
-    
-    // clear out size data
-    (*tempIndex) = 0;
-    // clear out rest of block
-    for (uint32_t size = 0; size < tempSize; size+=4) {
-        tempIndex = address + size;
-        (*tempIndex) = 0;
+    uintptr_t* index = address - sizeof(uintptr_t);
+    uintptr_t* data = address;
+    uintptr_t size = (*index);
+    (*index) = 0;
+    for (uintptr_t* blockIndex = data; (*data) < (*data) + size; blockIndex++) {
+        (*blockIndex) = 0;
+    }
+}
+
+void memset(void* address, char value, uintptr_t size) {
+    char* destIndex_char = (char*)address;
+    for (uintptr_t index = 0; index < size; index++) {
+        destIndex_char[index] = value;        
+    }
+}
+
+void memcpy(void* dest, void* src, uintptr_t size) {
+
+    char* srcIndex_char = (char*)src;
+    char* destIndex_char = (char*)dest;
+    uintptr_t* srcIndex_uintptr = (uintptr_t*)src;
+    uintptr_t* destIndex_uintptr = (uintptr_t*)dest;
+
+    if (size < 0xFFFF) {
+        for (uintptr_t index = 0; index < size; index++) {
+            destIndex_char[index] = srcIndex_char[index];
+        }
+    }
+    else {
+        uintptr_t size_uintptr = (size & 0xFFFFFFFC) / 4;
+        uint8_t remainder = size % 4;
+
+        for (uintptr_t index = 0; index < size_uintptr; index++) {
+            destIndex_uintptr[index] = srcIndex_uintptr[index];
+        }
+        for (uintptr_t index = 0; index < remainder; index++) {
+            destIndex_char[index] = srcIndex_char[index];
+        }
     }
 }
 
@@ -78,7 +124,7 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
     // linker rounds down _end to the nearest 4096 byte, so there is still data at heapStart
     // skipping to another page to get clear memory
     heapStart += 4096;
-
+    kstart = heapStart;
 
     // temp string of size 64
     char tempString[64];
@@ -88,7 +134,7 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
     void* finalPageAddress = (void*)0xFFFFF000;
 
     // some housekeeping stuff
-    kstart = heapStart;
+
 
 /*-----------------------------------------------------------------------------------------------*/
 /*                                          Memory Type                                          */
@@ -96,7 +142,11 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
 
     usableFirstPageAddress = (void*)(multiboot_meminfo->mem_lower * 1024);
     usableLastPageAddress = (void*) (multiboot_meminfo->mem_upper * 1024 + (uint32_t)usableFirstPageAddress);
-    
+    usable_first_address = heapStart;
+    usable_last_address = usableLastPageAddress;
+
+    // malloc init, clear multiboot2 information and other data
+    memset(heapStart, 0, usableLastPageAddress + 4095 - (uintptr_t) heapStart);
 
 /*-----------------------------------------------------------------------------------------------*/
 /*                                          Paging Init                                          */
