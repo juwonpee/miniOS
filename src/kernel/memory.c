@@ -19,11 +19,8 @@
 #include "memory.h"
 
 
-uintptr_t* kstart;
-static uintptr_t* ustart = (void*) UHEAP_START;
-
-uintptr_t* usable_first_address;
-uintptr_t* usable_last_address;
+void* heap_start;
+void* heap_end;
 
 volatile memory_pageDirectoryCR3_t pageDirectoryCR3;
 alignas(4096) volatile memory_pageDirectory_t pageDirectory[1024];
@@ -31,7 +28,9 @@ alignas(4096) volatile memory_pageTable_t pageTable[1024][1024];
 
 
 void* malloc(uintptr_t size) {
-    // All memory allocations are word size aligned
+    // TODO: If first node gets freed, everything breaks cuz the references to the second node are broken
+
+    // All memory allocations are word size aligned cuz speed
     if (size <= 0xFFFFFFFC) {
         if (size % 0x4) {
             size = size & 0xFFFFFFFC;
@@ -43,48 +42,60 @@ void* malloc(uintptr_t size) {
         panic();
     }
 
-    uintptr_t* index = usable_first_address + 4096;
-    uintptr_t* data;
-
+    memory_malloc_node_t* node = heap_start;
+    memory_malloc_node_t* lastNode = node;
     while (1) {
-        data = index + 1;
-        if ((*index) == 0) {                                                                        // Block is empty
-            // Check if block is big enough
-            bool fit = true;
-            for (uintptr_t* blockIndex = data; (*data) < (*data) + size; blockIndex++) {
-                if ((*blockIndex) != 0) {
-                    fit = false;
-                    index = (uintptr_t*)((uintptr_t)index + (*index));
-                    break;
-                }
+        if (node->size == 0) {
+            // Insert new node to end of list
+            node->size = size + sizeof(memory_malloc_node_t);
+            if (lastNode != node) {
+                node->prevNode = lastNode;
+                lastNode->nextNode = node;
             }
-            // If block big enough
-            if (fit == true) {
-                (*index) = size;
-                // zero block
-                for (uintptr_t* blockIndex = data; blockIndex < data + size; blockIndex++) {
-                    if (*blockIndex) {
-                        (*blockIndex) = 0;
-                    }
-                }
-                return (void*) data;
-            }
+            return &node->data;
         }
         else {
-            index = (uintptr_t*)((uintptr_t)index + (*index) + sizeof(uintptr_t));
+            if (node->nextNode != 0) {
+                if ((uintptr_t)node->nextNode - (uintptr_t)node - node->size >= size + sizeof(memory_malloc_node_t)) {
+                    memory_malloc_node_t* tempNextNode = node->nextNode;
+                    memory_malloc_node_t* tempPrevNode = node;
+
+                    // setup the node in between the two nodes
+                    node = (memory_malloc_node_t*)((uintptr_t)node + node->size);
+                    node->size = size + sizeof(memory_malloc_node_t);
+                    node->nextNode = tempNextNode;
+                    node->prevNode = tempPrevNode;
+
+                    // Change next node pointers
+                    tempNextNode->prevNode = node;
+
+                    // Change prev node pointers
+                    tempPrevNode->nextNode = node;
+
+                    return &node->data;
+                }
+            }
+            lastNode = node;
+            node = (memory_malloc_node_t*)(node->size + (uintptr_t)node);
         }
-        index++;
     }
 }
 
 void free(void* address) {
-    uintptr_t* index = address - sizeof(uintptr_t);
-    uintptr_t* data = address;
-    uintptr_t size = (*index);
-    (*index) = 0;
-    for (uintptr_t* blockIndex = data; (*data) < (*data) + size; blockIndex++) {
-        (*blockIndex) = 0;
-    }
+    memory_malloc_node_t* node = address - sizeof(memory_malloc_node_t);
+    memory_malloc_node_t* prevNode = node->prevNode;
+    memory_malloc_node_t* nextNode = node->nextNode;
+	for (uintptr_t index = 0; index < (node->size - sizeof(memory_malloc_node_t)) / 4; index++) {
+		node->data[index] = 0;
+	}
+    // clear remaining data of current node
+    node->size = 0;
+    node->prevNode = 0;
+    node->nextNode = 0;
+
+    // Connect prev node and next node
+    prevNode->nextNode = nextNode;
+    nextNode->prevNode = prevNode;
 }
 
 void memset(void* address, char value, uintptr_t size) {
@@ -120,120 +131,88 @@ void memcpy(void* dest, void* src, uintptr_t size) {
 }
 
 bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* heapStart) {
-    // TODO: BUG HACK
-    // linker rounds down _end to the nearest 4096 byte, so there is still data at heapStart
-    // skipping to another page to get clear memory
-    heapStart += 4096;
-    kstart = heapStart;
-
-    // temp string of size 64
-    char tempString[64];
-    // Variables to initialize memory;
-    void* usableFirstPageAddress;
-    void* usableLastPageAddress;
-    void* finalPageAddress = (void*)0xFFFFF000;
-
-    // some housekeeping stuff
-
-
 /*-----------------------------------------------------------------------------------------------*/
 /*                                          Memory Type                                          */
 /*-----------------------------------------------------------------------------------------------*/
 
-    usableFirstPageAddress = (void*)(multiboot_meminfo->mem_lower * 1024);
-    usableLastPageAddress = (void*) (multiboot_meminfo->mem_upper * 1024 + (uint32_t)usableFirstPageAddress);
-    usable_first_address = heapStart;
-    usable_last_address = usableLastPageAddress;
+    void* kernel_start_page = (void*)(multiboot_meminfo->mem_lower * 1024);
+    void* heap_start_page = heapStart;
+    void* heap_end_page = (void*) (multiboot_meminfo->mem_upper * 1024 + (uint32_t)kernel_start_page);
+    heap_start = heap_start_page;
+    heap_end = heap_end_page - 1;                                                               // Leave last page free cuz lazy to do all the checking
 
     // malloc init, clear multiboot2 information and other data
-    memset(heapStart, 0, usableLastPageAddress + 4095 - (uintptr_t) heapStart);
+    memset(heap_start_page, 0, (uintptr_t)heap_end_page + 4095 - (uintptr_t) heap_start_page);              
+    malloc(4);																					// TEMPFIX: Because of the first node problem of malloc, need an unreferenced first node to keep the references for the second node
 
 /*-----------------------------------------------------------------------------------------------*/
 /*                                          Paging Init                                          */
 /*-----------------------------------------------------------------------------------------------*/
+    
+    char hello[] = "Hello World!";
+
+    char* test1 = malloc(16);
+    memcpy(test1, hello, 13);
+
+    char* test2 = malloc(16);
+    memcpy(test2, hello, 13);
+
+    char* test3 = malloc(16);
+    memcpy(test3, hello, 13);
+
+    free(test2);
+
+    test2 = malloc(8);
+    free(test2);
+
+    test2 = malloc(32);
 
     // Initialization of paging structures
-    // Map all of the paging structures to memory
     // Only enable kernel space memory for now, enable MMIO and user space later in init process
 
     // Init pageDirectoryCR3
     pageDirectoryCR3.address = (uint32_t)&pageDirectory >> 12;
-    pageDirectoryCR3.pageWriteThrough = 1;
-    pageDirectoryCR3.pageCacheDisable = 1;
+    pageDirectoryCR3.pageWriteThrough = 0;
+    pageDirectoryCR3.pageCacheDisable = 0;
 
     // Init pageDirectory
-    void* currentPageIndex;
-    for (int i = 0; i < 1024; i++) {
-        // Separate User space and kernel space tables
-        if ((uint32_t)currentPageIndex < (uint32_t)ustart) {        // Kernel space
-            currentPageIndex = (void*)(i * 1024 * 4096);
-            pageDirectory[i].present = 1;
-            pageDirectory[i].RW = 1;
-            pageDirectory[i].US = 0;
-            pageDirectory[i].pageWriteThrough = 1;
-            pageDirectory[i].pageCacheDisable = 1;
-            pageDirectory[i].size = 1;
-            pageDirectory[i].address = (uint32_t)&pageTable[i] >> 12;
-
-            // Init kernel space page tables
-            for (int j = 0; j < 1024; j++) {
-                currentPageIndex = (void*)(i * 1024 * 4096 + j * 4096);
-                pageTable[i][j].present = 1;
-                pageTable[i][j].RW = 1;
-                pageTable[i][j].US = 0;
-                pageTable[i][j].pageWriteThrough = 1;
-                pageTable[i][j].pageCacheDisable = 1;
-                pageTable[i][j].global = 1;                         // Will set to global cuz lazy to implement TLBs
-                pageTable[i][j].address = ((uint32_t)currentPageIndex) >> 12;
-            }
+    {
+        void* currentPageIndex;
+        void* heapStartPageDirectory;
+        uintptr_t temp = (uintptr_t)heap_start_page;
+        if (temp & 0x400000) {
+            temp &= 0xFF400000;
+            temp += 0x400000;
         }
-
-        else if (currentPageIndex <= usableLastPageAddress) {       // User space
+        heapStartPageDirectory = (void*) temp;
+        for (uintptr_t i = 0; i < 1024; i++) {
             currentPageIndex = (void*)(i * 1024 * 4096);
-            pageDirectory[i].present = 0;
-            pageDirectory[i].RW = 1;
-            pageDirectory[i].US = 1;
-            pageDirectory[i].pageWriteThrough = 1;
-            pageDirectory[i].pageCacheDisable = 1;
-            pageDirectory[i].size = 1;
-            pageDirectory[i].address = (uint32_t)&pageTable[i] >> 12;
-
-            // Init user space page tables
-            for (int j = 0; j < 1024; j++) {
-                currentPageIndex = (void*)(i * 1024 * 4096 + j * 4096);
-                pageTable[i][j].present = 0;
-                pageTable[i][j].RW = 1;
-                pageTable[i][j].US = 1;
-                pageTable[i][j].pageWriteThrough = 1;
-                pageTable[i][j].pageCacheDisable = 1;
-                pageTable[i][j].global = 1;                         // Will set to global cuz lazy to implement TLBs
-                pageTable[i][j].address = ((uint32_t)currentPageIndex) >> 12;
+            if (currentPageIndex <= heapStartPageDirectory) {                                   // Kernel space
+                currentPageIndex = (void*)(i * 1024 * 4096);
+                pageDirectory[i].present = 1;
+                pageDirectory[i].RW = 1;
+                pageDirectory[i].US = 0;
+                pageDirectory[i].pageWriteThrough = 0;
+                pageDirectory[i].pageCacheDisable = 0;
+                pageDirectory[i].size = 1;
+                pageDirectory[i].address = (uint32_t)&pageTable[i] >> 12;
+                for (uintptr_t j = 0; j < 1024; j++) {
+                    currentPageIndex = (void*)(i * 1024 * 4096 + j * 4096);
+                    pageTable[i][j].present = 1;
+                    pageTable[i][j].RW = 1;
+                    pageTable[i][j].US = 0;
+                    pageTable[i][j].pageWriteThrough = 0;
+                    pageTable[i][j].pageCacheDisable = 0;
+                    pageTable[i][j].global = 0;													// Will set to global cuz lazy to implement TLBs
+                    pageTable[i][j].address = ((uint32_t)currentPageIndex) >> 12;
+                }
             }
-        }
-
-        else if (currentPageIndex <= finalPageAddress) {            // MMIO address magic
-            currentPageIndex = (void*)(i * 1024 * 4096);
-            pageDirectory[i].present = 0;
-            pageDirectory[i].RW = 1;
-            pageDirectory[i].US = 0;
-            pageDirectory[i].pageWriteThrough = 1;
-            pageDirectory[i].pageCacheDisable = 1;
-            pageDirectory[i].size = 1;
-            pageDirectory[i].address = (uint32_t)&pageTable[i] >> 12;
-
-            // Init MMIO space page tables
-            for (int j = 0; j < 1024; j++) {
-                currentPageIndex = (void*)(i * 1024 * 4096 + j * 4096);
-                pageTable[i][j].present = 0;
-                pageTable[i][j].RW = 1;
-                pageTable[i][j].US = 0;
-                pageTable[i][j].pageWriteThrough = 1;
-                pageTable[i][j].pageCacheDisable = 1;
-                pageTable[i][j].global = 1;                         // Will set to global cuz lazy to implement TLBs
-                pageTable[i][j].address = ((uint32_t)currentPageIndex) >> 12;
+            else {
+                pageDirectory[i].present = 0;
             }
         }
     }
+
 
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Enable Paging                                         */
