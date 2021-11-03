@@ -56,5 +56,6 @@
 			"**/node_modules": false
 		},
 		"C_Cpp.intelliSenseEngineFallback": "Enabled",
+		"C_Cpp.loggingLevel": "Information",
 	},
 }

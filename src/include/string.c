@@ -96,3 +96,26 @@ char* itoa(uint64_t num, char* buffer, int base) {
     
     return buffer;
 }
+
+bool strcmp(char* string1, char* string2) {
+    uintptr_t length = 0;
+    while (string1[length] != '\0') {
+        length++;
+    }
+    
+    for (uintptr_t i = 0; i < length; i++) {
+        if (string1[i] != string2[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool strcmp_notnull(char* string1, char* string2, uintptr_t length) {
+    for (uintptr_t i = 0; i < length; i++) {
+        if (string1[i] != string2[i]) {
+            return true;
+        }
+    }
+    return false;
+}

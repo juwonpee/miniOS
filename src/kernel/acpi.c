@@ -18,17 +18,20 @@
 
 void* MADT;
 
-bool acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
-    // Check & validate rsdp
+acpi_master_table_t acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
+	acpi_master_table_t master_table;
+
+    // Get RSDP
 	acpi_rsdp_descriptor_t* rsdp = (acpi_rsdp_descriptor_t*)&(multiboot_acpi->rsdp);
-	for (int i = 0; i < 8; i++) {
-		char rsdpSignature[] = "RSD PTR ";
-		if (rsdp->signature[i] != rsdpSignature[i]) {
-			println("Incorrect rsdp, are you sure you're using a multiboot2 compliant bootloader?");
-			return true;
-		}
+
+	// Check & verify rsdp
+	if (strcmp_notnull((char*)rsdp->signature, "RSD PTR ", 8)) {
+		println("Error: Unable to find RSDP table, Requires ACPI compliant bootloader/bios");
+		master_table.OK = true;
+		return master_table;
 	}
 
+	// RSDP version
 	if (rsdp -> revision == 0) {
 		println("ACPI Version 1");
 	}
@@ -39,27 +42,26 @@ bool acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
 	// Get RSDT
 	acpi_rsdt_t* rsdt = (acpi_rsdt_t*)((uintptr_t)(rsdp -> rsdtAddress));
 
-	// Check % verify rsdt
-	for (int i = 0; i < 4; i++) {
-		char rsdtSignature[] = "RSDT";
-		if (rsdt->acpi_sdt_header.signature[i] != rsdtSignature[i]) {
-			println("Incorrect rsdt, are you sure you're using a multiboot2 compliant bootloader?");
-			return true;
-		}
+	// Check & verify rsdt
+	if (strcmp_notnull((char*)rsdt->acpi_sdt_header.signature, "RSDT", 4)) {
+		println("Error: Unable to find RSDT table, Requires ACPI compliant bootloader/bios");
+		master_table.OK = true;
+		return master_table;
 	}
 
 	// Get ACPI tables
 	int entries = (rsdt -> acpi_sdt_header.length - sizeof(rsdt->acpi_sdt_header)) / 4;
 	for (int i = 0; i < entries; i++) {
 		acpi_sdt_header_t* header = rsdt->tablePointer[i];
-		printChar(header->signature[0]);
-		printChar(header->signature[1]);
-		printChar(header->signature[2]);
-		printChar(header->signature[3]);
+		if (!strcmp_notnull((char*)header->signature, "MCFG", 4)) {
+			master_table.MCFG = (*(acpi_MCFG_t*)header);
+		}
 	}
 	// for (int i = 0; i < entries; i++) {
 	// 	acpi_sdt_header_t* h = (acpi_sdt_header_t*) xsdt -> tablePointer;
 	// 	println((char*)&h -> signature);
 	// }
-	return false;
+
+
+	return master_table;
 }

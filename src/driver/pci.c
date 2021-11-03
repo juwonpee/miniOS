@@ -17,7 +17,20 @@
 #include "pci.h"
 
 
+void enumerate_bus(uint64_t address, uint64_t bus) {
 
-bool pci_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
+}
+
+void enumerate_device(uint64_t address, uint64_t device) {
+
+}
+
+void enumerate_function(uint64_t address, uint64_t function) {
+	
+}
+
+bool pci_init(acpi_master_table_t acpi_master_table) {
+	acpi_MCFG_t MCFG = acpi_master_table.MCFG;
+	//int entries = (MCFG.header.length - sizeof(acpi_MCFG_t)) / sizeof(acpi_device_config)
 	return false;
 }

@@ -53,16 +53,15 @@ stack_top:
 .type _start, @function
 _start:
 	# setup stack
-	mov $stack_top, %esp
-	mov %esp, %ebp
+	mov 	$stack_top, %esp
+	mov 	%esp, %ebp
 
 	# push parameters to kernel init function
-	mov $_end, %ecx
-	push %ecx
-	push %ebx						/* Pointer to multiboot information structure */
-	push %eax						/* MAGIC value */
-	call kernel_init
+	mov 	$_end, %ecx
+	push	%ecx
+	push 	%ebx						/* Pointer to multiboot information structure */
+	push 	%eax						/* MAGIC value */
+	call 	kernel_init
 	cli
-		hlt
+	hlt
 	
-.size _start, . - _start

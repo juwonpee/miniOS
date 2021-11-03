@@ -60,5 +60,21 @@ typedef struct acpi_xsdt_t {
 	acpi_sdt_header_t* tablePointer[];
 } __attribute__ ((packed)) acpi_xsdt_t;
 
+typedef struct acpi_MCFG_t {
+	acpi_sdt_header_t header;
+	uint64_t reserved;
+	struct acpi_MCFG_configuration_space {
+		uint64_t* base_address;
+		uint16_t group_segment_number;
+		uint8_t start_pci_number;
+		uint8_t end_pci_number;
+	} configuration_space[];
+} __attribute ((packed)) acpi_MCFG_t;
 
-bool acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi);
+typedef struct acpi_master_table_t {
+	bool OK;
+	acpi_MCFG_t MCFG;
+} acpi_master_table_t;
+
+
+acpi_master_table_t acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi);

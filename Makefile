@@ -45,6 +45,16 @@ image: check_multiboot
 # 	losetup -d /dev/loop0
 # 	losetup -d /dev/loop1
 
+fs:
+	dd if=/dev/zero of=build/fs.hdd bs=1M count=50
+	fdisk build/fs.hdd
+	mkfs.vfat build/fs.hdd
+	mkdir tempMount
+	mount build/fs.hdd tempMount
+	cp -r build/test_files tempMount
+	umount tempMount
+	rm -r tempMount
+#ontcw
 
 %.o: %.c
 	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS)
@@ -58,26 +68,30 @@ check_multiboot:
 
 run:
 	$(QEMU) \
-		-m 256M -M q35\
+		-m 256M\
 		-hda $(OUTPUT_IMAGE) \
+		-hdb build/fs.hdd \
 		-nographic 
 
 run_debug:	
 	$(QEMU) \
-		-m 256M -M q35\
+		-m 256M\
 		-hda $(OUTPUT_IMAGE) \
+		-hdb build/fs.hdd \
 		-nographic \
 		-S -s
 
 run_no_grub:	
 	$(QEMU) \
-		-m 256M -M q35\
+		-m 256M\
 		-kernel $(OUTPUT) \
+		-hdb build/fs.hdd \
 		-nographic 
 
 run_no_grub_debug:	
 	$(QEMU) \
-		-m 256M -M q35\
+		-m 256M\
 		-kernel $(OUTPUT) \
+		-hdb build/fs.hdd \
 		-nographic \
 		-S -s

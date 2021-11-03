@@ -31,6 +31,7 @@
 
 struct multiboot_tag_basic_meminfo* multiboot_meminfo;
 struct multiboot_tag_old_acpi* multiboot_acpi;
+acpi_master_table_t acpi_master_table;
 
 bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
     char tempString[64];
@@ -74,6 +75,7 @@ bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
 }
 
 void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapStart) {
+
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
@@ -91,7 +93,8 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
     }
 
     print("Initializing ACPI tables... ");
-    if (!acpi_init(multiboot_acpi)) {
+    acpi_master_table = acpi_init(multiboot_acpi);
+    if (!acpi_master_table.OK) {
         println("OK");
     }
     else {
@@ -127,23 +130,28 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         panic();
     }
 
-    print("Initializing PCI bus... ");
-    if (!pci_init(multiboot_acpi)) {
-        println("OK");
-    }
-    else {
-        println("Error Initializing PCI bus");
-        panic();
-    }
-
-    // print("Initializing Drive.. ");
-    // if (!ata_init()) {
+    // print("Initializing PCI bus... ");
+    // if (!pci_init(acpi_master_table)) {
     //     println("OK");
     // }
     // else {
-    //     println ("Error Initializing Drive");
+    //     println("Error Initializing PCI bus");
     //     panic();
     // }
+
+    print("Initializing Drive.. ");
+    if (!ata_init()) {
+        println("OK");
+    }
+    else {
+        println ("Error Initializing Drive");
+        panic();
+    }
+    ata_sector_data_t data = ata_primary_read(2);
+    data.data[512] = '\0';
+    println((char*)data.data);
+
+    
     
     println("Welcome to miniOS!");
     while(1) {

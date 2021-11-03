@@ -14,10 +14,13 @@
 	 limitations under the License.
 */
 
+#pragma once
+
 #include "types.h"
 #include "io.h"
 #include "print.h"
 #include "pit.h"
+#include "interrupt.h"
 
 #define ATA_PRIMARY_IRQ						15
 #define ATA_SECONDARY_IRQ					14
@@ -91,6 +94,30 @@
 #define ATA_SECURITY_DISABLE_PASSWORD		0xF6
 
 
+typedef enum ata_error_t {
+	normal, error, AMNF, TKZNF, ABRT, MCR, IDNF, MC, UNC, BBK
+} ata_error_t ;
+
+typedef struct ata_sector_data_t {
+	uint8_t data[512];
+} ata_sector_data_t;
+
 bool ata_init();
 
-bool ata_read_sector();
+// Primary
+ata_sector_data_t ata_primary_read(uint64_t lba);
+bool ata_primary_read_sector_request(uint64_t lba);
+ata_error_t ata_primary_read_sector();
+
+bool ata_primary_write(uint64_t lba, ata_sector_data_t data);
+bool ata_primary_write_request(uint64_t lba);
+bool ata_primary_write_sector(uint64_t lba, ata_sector_data_t data);
+
+// Secondary
+ata_sector_data_t ata_secondary_read(uint64_t lba);
+bool ata_secondary_read_sector_request(uint64_t lba);
+ata_error_t ata_secondary_read_sector();
+
+bool ata_secondary_write(uint64_t lba, ata_sector_data_t data);
+bool ata_secondary_write_request(uint64_t lba);
+bool ata_secondary_write_sector(uint64_t lba, ata_sector_data_t data);
