@@ -97,6 +97,18 @@ char* itoa(uint64_t num, char* buffer, int base) {
     return buffer;
 }
 
+uintptr_t strlen(char* string) {
+    uintptr_t length = 1;
+    while (1) {
+        if (string[length] != '\0') {
+            length++;
+        }
+        else {
+            return length;
+        }
+    }
+}
+
 bool strcmp(char* string1, char* string2) {
     uintptr_t length = 0;
     while (string1[length] != '\0') {

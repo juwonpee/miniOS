@@ -30,6 +30,6 @@ char readChar();
 
 void printChar(char character);
 
-void print(char* string);
+__attribute__ ((fastcall)) void print(char* string);
 
-void println(char* string);
+__attribute__ ((fastcall)) void println(char* string);

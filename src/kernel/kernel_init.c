@@ -17,7 +17,7 @@
 
 
 #include "types.h"
-#include "kernel.h"
+#include "kernel_init.h"
 #include "io.h"
 #include "print.h"
 #include "memory.h"
@@ -102,19 +102,6 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         panic();
     }
 
-    // Init memory
-    print("Initializing memory... ");
-    if (!memory_init(multiboot_meminfo, heapStart)) {
-        println("OK");
-    }
-    else {
-        println ("Error Initializing Memory");
-        panic();
-    }
-
-/*-----------------------------------------------------------------------------------------------*/
-/*                                         Virtual Memory                                        */
-/*-----------------------------------------------------------------------------------------------*/
     print("Initializing Interrupts... ");
     uint16_t cs;
     asm volatile (
@@ -130,14 +117,19 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         panic();
     }
 
-    // print("Initializing PCI bus... ");
-    // if (!pci_init(acpi_master_table)) {
-    //     println("OK");
-    // }
-    // else {
-    //     println("Error Initializing PCI bus");
-    //     panic();
-    // }
+    // Init memory
+    print("Initializing memory... ");
+    if (!memory_init(multiboot_meminfo, heapStart)) {
+        println("OK");
+    }
+    else {
+        println ("Error Initializing Memory");
+        panic();
+    }
+
+/*-----------------------------------------------------------------------------------------------*/
+/*                                         Virtual Memory                                        */
+/*-----------------------------------------------------------------------------------------------*/
 
     print("Initializing Drive.. ");
     if (!ata_init()) {
@@ -147,9 +139,10 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         println ("Error Initializing Drive");
         panic();
     }
-    ata_sector_data_t data = ata_primary_read(2);
-    data.data[512] = '\0';
-    println((char*)data.data);
+    
+    uintptr_t* temp = malloc(40000000);
+    temp = malloc(strlen("Kernel test string"));
+    memcpy("Kernel test string", temp, strlen("Kernel test string"));
 
     
     

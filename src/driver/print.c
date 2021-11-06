@@ -27,7 +27,7 @@ void printChar(char character) {
     outb(COMport, character);
 }
 
-void print(char* string) {
+__attribute__ ((fastcall)) void print(char* string) {
     int x = 0;
     while (string[x] != '\0') {
         if (inb(COMport + 5) & 0x20) {
@@ -38,7 +38,7 @@ void print(char* string) {
     }
 }
 
-void println(char* string) {
+__attribute__ ((fastcall)) void println(char* string) {
     print(string);
     print("\n");
 }

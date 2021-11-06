@@ -20,6 +20,7 @@
 #include "types.h"
 #include "io.h"
 #include "ata.h"
+#include "interrupt.h"
 
 #define PIT_DIVISOR                 8192
 #define PIT_MAX_DIVISOR             65535

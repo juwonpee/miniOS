@@ -94,14 +94,6 @@
 #define ATA_SECURITY_DISABLE_PASSWORD		0xF6
 
 
-typedef enum ata_error_t {
-	normal, error, AMNF, TKZNF, ABRT, MCR, IDNF, MC, UNC, BBK
-} ata_error_t ;
-
-typedef struct ata_sector_data_t {
-	uint8_t data[512];
-} ata_sector_data_t;
-
 bool ata_init();
 
 // Primary
