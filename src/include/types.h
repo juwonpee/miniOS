@@ -238,10 +238,9 @@ typedef struct memory_malloc_node_t {
 } memory_malloc_node_t;
 
 typedef struct memory_page_descriptor_t {
-	bool references;
+	uintptr_t references;
 	scheduler_context_t pid;
-	void* physical_address;
-	void* virtual_address;
+	memory_pageTable_t* pageTable;
 } memory_page_descriptor_t;
 
 

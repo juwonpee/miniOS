@@ -18,6 +18,14 @@
 
 scheduler_context_t scheduler_context = 0;
 
+void scheduler_kernel_lock() {
+	interrupt_disable();
+}
+
+void scheduler_kernel_unlock() {
+	interrupt_enable();
+}
+
 scheduler_context_t scheduler_get_context() {
-   return scheduler_context;
+	return scheduler_context;
 }

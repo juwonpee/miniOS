@@ -1,8 +1,8 @@
 # juwonpee/miniOS.git
-A personal Operating system project without any specific goals in mind. 
+My personal 32-bit Operating system project without any specific goals in mind. 
 
 ## Requirements
-qemu-system-x86_64
+qemu-system-i386 with pentium instruction set and at least 64M of memory
 ## To run
 ```bash
 make run
@@ -12,12 +12,13 @@ make run
 
 
 ## Changes:
+### Verision 0.0.2-pre_release
+Totally new kernel memory manager
+malloc() is smarter albiet a bit slower
+    now respects page boundaries and has a counter to references so it can free unused pages
 ### Version 0.0.1-pre_release
 A bootable kernel with serial interface
 
-### Verision 0.0.2-pre_release
-Totally new kernel memory manager
-malloc() is smarter albiet a bit slower; now respects page boundaries and can free unused pages
 
 
 

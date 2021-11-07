@@ -27,16 +27,20 @@
 
 #define nullptr (void*)0x0
 
-void* malloc(uintptr_t size);
-
-void free(void* address);
-
 void memset(void* address, char value, uintptr_t size);
 
 void memcpy(void* dest, void* src, uintptr_t size);
 
+void* malloc(uintptr_t size);
+
+void free(void* address);
+
 void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* address);
 
 void memory_kernel_page_alloc(void* address);
+
+void memory_kernel_page_free(void* address);
+
+bool memory_kernel_check_exists(void* address);
 
 bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* heapStart);

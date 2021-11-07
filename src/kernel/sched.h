@@ -17,11 +17,17 @@
 #pragma once
 
 #include "types.h"
+#include "interrupt.h"
 
-#define SCHED_PIC_KERNEL 0
+#define SCHED_PID_KERNEL      0
+#define SCHED_PID_NOTHING     0xFFFFFFFF
 
 
 void scheduler_init();
+
+void scheduler_kernel_lock();
+
+void scheduler_kernel_unlock();
 
 scheduler_context_t scheduler_get_context();
 
