@@ -26,7 +26,8 @@ volatile memory_pageDirectoryCR3_t pageDirectoryCR3;
 alignas(4096) memory_pageDirectory_t pageDirectory[1024];
 alignas(4096) memory_pageTable_t pageTable[1024][1024];
 
-memory_page_descriptor_t page_descriptor[1024][1024];
+memory_virtual_page_descriptor_t virtual_page_descriptor[1024][1024];
+memory_physical_page_descriptor_t physical_page_descriptor[1024][1024];
 
 void memset(void* address, char value, uintptr_t size) {
 	char* destIndex_char = (char*)address;
@@ -74,7 +75,7 @@ void* malloc(uintptr_t size) {
 			// Add references to current page
 			uintptr_t i = ((uintptr_t)node & 0xFFC00000) >> 22;
 			uintptr_t j = ((uintptr_t)node & 0x3FF000) >> 12;
-			page_descriptor[i][j].references++;
+			virtual_page_descriptor[i][j].references++;
 
 			// Add nodes and allocate new pages if necessary
 			if ((uintptr_t)node + size + sizeof(memory_malloc_node_t) < ((uintptr_t)node & 0xFFFFF000) + 0x1000) {		// Fits within current page
@@ -97,7 +98,7 @@ void* malloc(uintptr_t size) {
 					uintptr_t i = (pageIndex & 0xFFC00000) >> 22;
 					uintptr_t j = (pageIndex & 0x3FF000) >> 12;
 					memory_kernel_page_alloc((void*)pageIndex);
-					page_descriptor[i][j].references++;
+					virtual_page_descriptor[i][j].references++;
 				}
 
 				// Insert new node to end of list
@@ -134,7 +135,7 @@ void* malloc(uintptr_t size) {
 			for (uintptr_t pageIndex = (uintptr_t)node & 0xFFFFF000; pageIndex <= pageIndex + numPages * 0x1000; pageIndex += 0x1000) {
 				uintptr_t i = (pageIndex & 0xFFC00000) >> 22;
 				uintptr_t j = (pageIndex & 0x3FF000) >> 12;
-				page_descriptor[i][j].references++;
+				virtual_page_descriptor[i][j].references++;
 			}
 
 			scheduler_kernel_unlock();
@@ -158,8 +159,10 @@ void free(void* address) {
 	for (uintptr_t pageIndex = (uintptr_t)node & 0xFFFFF000; pageIndex <= pageIndex + numPages * 0x1000; pageIndex += 0x1000) {
 		uintptr_t i = (pageIndex & 0xFFC00000) >> 22;
 		uintptr_t j = (pageIndex & 0x3FF000) >> 12;
-		page_descriptor[i][j].references--;
-		memory_kernel_page_free((void*)pageIndex);
+		virtual_page_descriptor[i][j].references--;
+		if (virtual_page_descriptor[i][j].references == 0) {
+			memory_kernel_page_free((void*)pageIndex);
+		}
 	}
 
 	// Connect prev node and next node
@@ -201,10 +204,29 @@ void memory_kernel_page_alloc(void* address) {
 	// Check if kernel page is already allocated
 	uintptr_t i = ((uintptr_t)address & 0xFFC00000) >> 22;
 	uintptr_t j = ((uintptr_t)address & 0x3FF000) >> 12;
-	if (page_descriptor[i][j].pageTable->present == 0) {
+	if (virtual_page_descriptor[i][j].pageTable->present == 0) {
 		// Find free page
-		while (1) {
+		for (uintptr_t index = 0; index < 1024 * 1024; index++) {
+			uintptr_t x = index / 1024;
+			uintptr_t y = index % 1024;
 
+			if (physical_page_descriptor[x][y].virtual_page_descriptor == nullptr) {
+				// Virtual page descriptor stuff
+				virtual_page_descriptor[i][j].pid = SCHED_PID_KERNEL;
+				virtual_page_descriptor[i][j].references = 0;
+				virtual_page_descriptor[i][j].pageTable = &pageTable[i][j];
+				virtual_page_descriptor[i][j].pageTable->present = 1;
+				virtual_page_descriptor[i][j].pageTable->RW = 1;
+				virtual_page_descriptor[i][j].pageTable->US = 0;
+				virtual_page_descriptor[i][j].pageTable->pageWriteThrough = 0;
+				virtual_page_descriptor[i][j].pageTable->pageCacheDisable = 0;
+				virtual_page_descriptor[i][j].pageTable->global = 0;
+				virtual_page_descriptor[i][j].pageTable->address = (uint32_t)address >> 12;
+				virtual_page_descriptor[i][j].physical_page_descriptor = &physical_page_descriptor[x][y];
+
+				// Physical page descriptor stuff
+				physical_page_descriptor[x][y].virtual_page_descriptor = &virtual_page_descriptor[i][j];
+			}
 		}
 	}
 
@@ -216,12 +238,31 @@ void memory_kernel_page_free(void* address) {
 	scheduler_kernel_lock();
 
 	
+	uintptr_t i = ((uintptr_t)address & 0xFFC00000) >> 22;
+	uintptr_t j = ((uintptr_t)address & 0x3FF000) >> 12;
+
+	// Virtual page descriptor stuff
+	virtual_page_descriptor[i][j].pid = SCHED_PID_NOTHING;
+	virtual_page_descriptor[i][j].references = 0;
+	virtual_page_descriptor[i][j].pageTable->present = 0;
+	virtual_page_descriptor[i][j].physical_page_descriptor = nullptr;
 	
 	scheduler_kernel_unlock();
 }
 
 bool memory_kernel_check_exists(void* address) {
+	// Kernel critical section due to race conditions
 	scheduler_kernel_lock();
+	
+	uintptr_t i = ((uintptr_t)address & 0xFFC00000) >> 22;
+	uintptr_t j = ((uintptr_t)address & 0x3FF000) >> 12;
+	if (virtual_page_descriptor[i][j].pid == SCHED_PID_NOTHING)
+	{
+		return true;
+	}
+	else {
+		return false;
+	}
 
 	scheduler_kernel_unlock();
 }
@@ -285,21 +326,25 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
 					pageTable[i][j].global = 0;													// Will set to global cuz lazy to implement TLBs
 					pageTable[i][j].address = ((uint32_t)currentPageIndex) >> 12;
 
-					// Page descriptor stuff
-					page_descriptor[i][j].pid = SCHED_PID_KERNEL;
-					page_descriptor[i][j].pageTable = &pageTable[i][j];
-					page_descriptor[i][j].references = 0xFFFFFFFF;
+					// Virtual page descriptor stuff
+					virtual_page_descriptor[i][j].pid = SCHED_PID_KERNEL;
+					virtual_page_descriptor[i][j].pageTable = &pageTable[i][j];
+					virtual_page_descriptor[i][j].references = 0xFFFFFFFF;
+					virtual_page_descriptor[i][j].physical_page_descriptor = &physical_page_descriptor[i][j];
 
+					// Physical page descriptor stuff
+					physical_page_descriptor[i][j].virtual_page_descriptor = &virtual_page_descriptor[i][j];
 				}
 			}
 			else {
 				pageDirectory[i].present = 0;
 
-				// Page descriptor stuff
 				for (uintptr_t j = 0; j < 1024; j++) {
-					page_descriptor[i][j].pid = SCHED_PID_NOTHING;
-					page_descriptor[i][j].pageTable = &pageTable[i][j];
-					page_descriptor[i][j].references = 0;
+					// Virtual page descriptor stuff
+					virtual_page_descriptor[i][j].pid = SCHED_PID_NOTHING;
+
+					// Physical page descriptor stuff
+					physical_page_descriptor[i][j].virtual_page_descriptor = nullptr;
 				}
 			}
 		}

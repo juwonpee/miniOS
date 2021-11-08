@@ -237,11 +237,20 @@ typedef struct memory_malloc_node_t {
 	uintptr_t data[];
 } memory_malloc_node_t;
 
-typedef struct memory_page_descriptor_t {
+typedef struct memory_virtual_page_descriptor_t memory_virtual_page_descriptor_t;
+typedef struct memory_physical_page_descriptor_t memory_physical_page_descriptor_t;
+
+typedef struct memory_virtual_page_descriptor_t {
 	uintptr_t references;
 	scheduler_context_t pid;
 	memory_pageTable_t* pageTable;
-} memory_page_descriptor_t;
+	memory_physical_page_descriptor_t* physical_page_descriptor;
+} memory_virtual_page_descriptor_t;
+
+
+typedef struct memory_physical_page_descriptor_t {
+	memory_virtual_page_descriptor_t* virtual_page_descriptor;
+} memory_physical_page_descriptor_t;
 
 
 
