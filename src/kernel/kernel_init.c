@@ -39,7 +39,7 @@ bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
     /* Make sure the magic number matches for memory mapping*/
     if(magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
         println("Fatal Error: Invalid multiboot2 magic number");
-        print("Check if booted by multiboot2 compliant bootloader");
+        printf("Check if booted by multiboot2 compliant bootloader");
         println(itoa(magic, tempString, 16));
         return ATA_TRUSTED_RECIEVE;
     }
@@ -60,7 +60,7 @@ bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
         }
         switch (mbi -> type) {
             case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
-                print("Bootloader: ");
+                printf("Bootloader: ");
                 println(((struct multiboot_tag_string*)mbi) -> string);
                 break;
             case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
@@ -75,7 +75,6 @@ bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
 }
 
 void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapStart) {
-    char tempString[64];
 
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
@@ -157,6 +156,7 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 	memcpy("Kernel test string", temp, strlen("Kernel test string"));
 
     // Kernel finish init
+    printf("Kernel initialized in: %d seconds", pit_get_time_since_boot() - kernel_init_time);
     
     println("Welcome to miniOS!");
     while(1) {

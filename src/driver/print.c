@@ -32,9 +32,15 @@ void printChar(char character) {
 	}
 }
 
-__attribute__ ((fastcall)) void print(char* format, ...) {
+__attribute__ ((fastcall)) void printf(char* format, ...) {
+	// int x = 0;
+    // while (format[x] != '\0') {
+	// 	printChar(format[x]);
+    //     x++;
+    // }
+
 	char* traverse;
-	uintptr_t i;
+	int64_t i;
 	char* s;
 	
 	// Module 1: Init arguments
@@ -43,6 +49,9 @@ __attribute__ ((fastcall)) void print(char* format, ...) {
 
 	for(traverse = format; *traverse != '\0'; traverse++) {
 		while (*traverse != '%') {
+			if (*traverse == '\0') {
+				return;
+			}
 			printChar(*traverse);
 			traverse++;
 		}
@@ -50,24 +59,36 @@ __attribute__ ((fastcall)) void print(char* format, ...) {
 		traverse++;
 
 		// Module 2: Fetching and executing arguments
+		char tempString[64];
 		switch(*traverse) {
-			case 'c': i = va_arg(arg, int);														// Char argument
-				printChar(arg);
+			case 'c': i = va_arg(arg, intptr_t);													// Char argument
+				printChar(i);
 				break;
-			case 'd': i = va_arg(arg, int);														// Integer argument
-				if (i < 10) {
-
-				}
+			case 'd': i = va_arg(arg, intptr_t);												// Integer argument
+				printf(itoa(i, tempString, 10));
+				break;
+			case 'x': i = va_arg(arg, intptr_t);												// Hexadecimal argument
+				printf(itoa(1, tempString, 16));
+				break;
+			case 'o': i = va_arg(arg, intptr_t);												// Octal argument
+				printf(itoa(i, tempString, 8));
+				break;
+			case 's': s = va_arg(arg, char*);
+				printf(s);
+				break;
 		}
 	}
+
+	// Close argument list
+	va_end(arg);
 }
 
 __attribute__ ((fastcall)) void println(char* string) {
-    print(string);
-    print("\n");
+    printf(string);
+    printf("\n");
 }
 
 __attribute__ ((fastcall)) void printsn(char* string) {
-    print("\33[2K\r");
-    print(string);
+    printf("\33[2K\r");
+    printf(string);
 }

@@ -32,7 +32,7 @@ char readChar();
 
 void printChar(char character);
 
-__attribute__ ((fastcall)) void print(char* format, ...);
+__attribute__ ((fastcall)) void printf(char* format, ...);
 
 __attribute__ ((fastcall)) void println(char* string);
 

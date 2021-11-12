@@ -228,17 +228,17 @@ void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* addre
 			if (pageFault_error.W == 0) {
 				println("Kernel panic! Invalid kernel memory read access");
 				println("Fault occured at");
-				print("Instruction: ");
+				printf("Instruction: ");
 				println(itoa((uintptr_t)instruction, tempString, 16));
-				print("Address: ");
+				printf("Address: ");
 				println(itoa((uintptr_t)address, tempString, 16));
 			}
 			else {
 				println("Kernel panic! Invalid kernel memory write access");
 				println("Fault occured at");
-				print("Instruction: ");
+				printf("Instruction: ");
 				println(itoa((uintptr_t)instruction, tempString, 16));
-				print("Address: ");
+				printf("Address: ");
 				println(itoa((uintptr_t)address, tempString, 16));
 			}
 
