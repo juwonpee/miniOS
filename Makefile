@@ -68,14 +68,14 @@ check_multiboot:
 
 run:
 	$(QEMU) \
-		-m 256M\
+		-m 512M\
 		-hda $(OUTPUT_IMAGE) \
 		-hdb build/fs.hdd \
 		-nographic 
 
 run_debug:	
 	$(QEMU) \
-		-m 256M\
+		-m 512M\
 		-hda $(OUTPUT_IMAGE) \
 		-hdb build/fs.hdd \
 		-nographic \
@@ -83,14 +83,14 @@ run_debug:
 
 run_no_grub:	
 	$(QEMU) \
-		-m 256M\
+		-m 512M\
 		-kernel $(OUTPUT) \
 		-hdb build/fs.hdd \
 		-nographic 
 
 run_no_grub_debug:	
 	$(QEMU) \
-		-m 256M\
+		-m 512M\
 		-kernel $(OUTPUT) \
 		-hdb build/fs.hdd \
 		-nographic \

@@ -379,198 +379,207 @@ bool interrupt_init(uint16_t cs) {
 	return false;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr000(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr000(IDT_interruptFrame_t* interruptFrame) {
 	println("Interrupt: 000, Divide by zero fault!");
 	interrupt_Counter[0] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr001(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr001(IDT_interruptFrame_t* interruptFrame) {
 	println("Interrupt: 001, Debug");
 	interrupt_Counter[1] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr002(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr002(IDT_interruptFrame_t* interruptFrame) {
 	println("Interrupt: 002, Non-maskable Interrupt");
 	interrupt_Counter[2] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr003(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr003(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 003:, Breakpoint");
-	interrupt_Counter[18] += 1;
+	interrupt_Counter[3] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr004(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr004(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 004, Overflow");
-	interrupt_Counter[18] += 1;
+	interrupt_Counter[4] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr005(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr005(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 005, Bound range exceeded");
-	interrupt_Counter[18] += 1;
+	interrupt_Counter[5] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr006(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr006(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 006, Invalid Opcode");
-	interrupt_Counter[18] += 1;
+	interrupt_Counter[6] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr007(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr007(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 007, Device not available");
-	interrupt_Counter[18] += 1;
+	interrupt_Counter[7] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr008(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr008(IDT_interruptFrame_t* interruptFrame) {
 	println("Interrupt: 008, Double fault!");
 	interrupt_Counter[8] += 1;
 	panic();
 }
 
-__attribute__ ((interrupt)) void interrupt_isr009(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr009(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 009, Coprocessor segment overrun");
 	interrupt_Counter[9] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr010(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr010(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 010, Invalid TSS");
 	interrupt_Counter[10] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr011(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr011(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 011, Segment not present");
 	interrupt_Counter[11] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr012(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr012(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 012, Stack-Segment fault");
 	interrupt_Counter[12] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr013(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr013(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 013, General protection fault");
 	interrupt_Counter[13] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr014(interruptFrame_t* interruptFrame) {
-	println("Interrupt: 014, Page Fault!");
-	char tempString[64];
-	print("Fault occured at: ");
-	println(itoa((uintptr_t) interruptFrame, tempString, 16));
+__attribute__ ((interrupt)) void interrupt_isr014(IDT_interruptFrame_t* interruptFrame, uint32_t errorCode) {
+	uint32_t* cr2;
+	asm volatile (
+        "movl %%cr2, %0" 
+        : "=a" (cr2)
+        : 
+    );
+	IDT_pageFault_error_t pageFault_error;
+	pageFault_error.data = errorCode;
+
+	// Call page fault handler
+	memory_interrupt_handler(pageFault_error, (void*)cr2, interruptFrame);
+
+
 	interrupt_Counter[14] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr015(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr015(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 015, Intel reserved");
 	interrupt_Counter[15] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr016(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr016(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 016, x87 Floating point exception");
 	interrupt_Counter[16] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr017(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr017(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 017, Alignment check");
 	interrupt_Counter[17] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr018(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr018(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 018, Machine check");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr019(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr019(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 019, SIMD floating point exception");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr020(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr020(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 020, Virtualization exception");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr021(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr021(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 021, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr022(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr022(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 022, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr023(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr023(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 023, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr024(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr024(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 024, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr025(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr025(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 025, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr026(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr026(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 026, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr027(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr027(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 027, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr028(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr028(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 028, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr029(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr029(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 029, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr030(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr030(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 030, Security Exception");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_isr031(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_isr031(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 031, Intel reserved");
 	interrupt_Counter[18] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq032(IDT_interruptFrame_t* interruptFrame) {
 	interrupt_disable();
 	interrupt_Counter[32] += 1;
 
@@ -582,86 +591,85 @@ __attribute__ ((interrupt)) void interrupt_irq032(interruptFrame_t* interruptFra
 	interrupt_enable();
 }
 
-
-__attribute__ ((interrupt)) void interrupt_irq033(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq033(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 033");
 	interrupt_Counter[33] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq034(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq034(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 034");
 	interrupt_Counter[34] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq035(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq035(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 035");
 	interrupt_Counter[35] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq036(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq036(IDT_interruptFrame_t* interruptFrame) {
 	serial_interrupt_read();
 	interrupt_Counter[35] += 1;
 	interrupt_pic_end(36);
 }
 
-__attribute__ ((interrupt)) void interrupt_irq037(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq037(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 037");
 	interrupt_Counter[37] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq038(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq038(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 038");
 	interrupt_Counter[38] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq039(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq039(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 039");
 	interrupt_Counter[39] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq040(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq040(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 040");
 	interrupt_Counter[40] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq041(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq041(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 041");
 	interrupt_Counter[41] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq042(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq042(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 042");
 	interrupt_Counter[42] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq043(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq043(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 043");
 	interrupt_Counter[43] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq044(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq044(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 044");
 	interrupt_Counter[44] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq045(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq045(IDT_interruptFrame_t* interruptFrame) {
 	
 	println("Interrupt: 045");
 	interrupt_Counter[45] += 1;
 }
 
-__attribute__ ((interrupt)) void interrupt_irq046(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq046(IDT_interruptFrame_t* interruptFrame) {
 	interrupt_disable();
 	println("Interrupt: 046");
 	interrupt_Counter[46] += 1;
@@ -672,7 +680,7 @@ __attribute__ ((interrupt)) void interrupt_irq046(interruptFrame_t* interruptFra
 	interrupt_enable();
 }
 
-__attribute__ ((interrupt)) void interrupt_irq047(interruptFrame_t* interruptFrame) {
+__attribute__ ((interrupt)) void interrupt_irq047(IDT_interruptFrame_t* interruptFrame) {
 	interrupt_disable();
 	println("Interrupt: 047");
 	interrupt_Counter[47] += 1;

@@ -24,13 +24,4 @@
 #define PCI_CONFIG_DATA				0xCFC
 #define PCI_FORWARDING_REGISTER		0xCFA
 
-
-typedef struct pci_device_config {
-	uint64_t baseAddress;
-	uint16_t PCISegGroup;
-	uint8_t startBus;
-	uint8_t endBus;
-	uint32_t reserved;
-} __attribute__ ((packed)) pci_device_config;
-
 bool pci_init(acpi_master_table_t acpi_master_table);

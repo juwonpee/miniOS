@@ -18,6 +18,7 @@
 
 #include "string.h"
 
+
 char* itoa(uint64_t num, char* buffer, int base) {
     int index = 0;
     int digits = 0;
@@ -95,6 +96,18 @@ char* itoa(uint64_t num, char* buffer, int base) {
     }
     
     return buffer;
+}
+
+uintptr_t strlen(char* string) {
+    uintptr_t length = 1;
+    while (1) {
+        if (string[length] != '\0') {
+            length++;
+        }
+        else {
+            return length;
+        }
+    }
 }
 
 bool strcmp(char* string1, char* string2) {

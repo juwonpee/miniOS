@@ -20,6 +20,7 @@
 #include "types.h"
 #include "io.h"
 #include "ata.h"
+#include "interrupt.h"
 
 #define PIT_DIVISOR                 8192
 #define PIT_MAX_DIVISOR             65535
@@ -31,4 +32,6 @@
 bool pit_init();
 
 bool pit_increment_time();
+
+// Return seconds
 uint64_t pit_get_time_since_boot();

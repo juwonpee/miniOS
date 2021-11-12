@@ -24,6 +24,8 @@ char* itoa(uint64_t num, char* buffer, int base);
 
 int64_t atoi(char* string);
 
+uintptr_t strlen(char* string);
+
 bool strcmp(char* string1, char* string2);
 
 bool strcmp_notnull(char* string1, char* string2, uintptr_t length);
