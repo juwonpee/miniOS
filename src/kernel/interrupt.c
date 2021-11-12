@@ -461,9 +461,6 @@ __attribute__ ((interrupt)) void interrupt_isr013(IDT_interruptFrame_t* interrup
 }
 
 __attribute__ ((interrupt)) void interrupt_isr014(IDT_interruptFrame_t* interruptFrame, uint32_t errorCode) {
-	println("Interrupt: 014, Page Fault!");
-	char tempString[64];
-
 	uint32_t* cr2;
 	asm volatile (
         "movl %%cr2, %0" 
@@ -473,12 +470,8 @@ __attribute__ ((interrupt)) void interrupt_isr014(IDT_interruptFrame_t* interrup
 	IDT_pageFault_error_t pageFault_error;
 	pageFault_error.data = errorCode;
 
-
-	print("Fault occured at: ");
-	println(itoa((uint32_t)cr2, tempString, 16));
-
 	// Call page fault handler
-	memory_interrupt_handler(pageFault_error, (void*)cr2);
+	memory_interrupt_handler(pageFault_error, (void*)cr2, interruptFrame);
 
 
 	interrupt_Counter[14] += 1;

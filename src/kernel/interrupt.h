@@ -128,6 +128,7 @@ __attribute__ ((interrupt)) void interrupt_isr010(IDT_interruptFrame_t* interrup
 __attribute__ ((interrupt)) void interrupt_isr011(IDT_interruptFrame_t* interruptFrame);
 __attribute__ ((interrupt)) void interrupt_isr012(IDT_interruptFrame_t* interruptFrame);
 __attribute__ ((interrupt)) void interrupt_isr013(IDT_interruptFrame_t* interruptFrame);
+// Page Fault
 __attribute__ ((interrupt)) void interrupt_isr014(IDT_interruptFrame_t* interruptFrame, uint32_t errorCode);
 __attribute__ ((interrupt)) void interrupt_isr015(IDT_interruptFrame_t* interruptFrame);
 __attribute__ ((interrupt)) void interrupt_isr016(IDT_interruptFrame_t* interruptFrame);

@@ -35,7 +35,7 @@ void* malloc(uintptr_t size);
 
 void free(void* address);
 
-void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* address);
+void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* address, void* instruction);
 
 void memory_kernel_page_alloc(void* address);
 

@@ -32,4 +32,6 @@
 bool pit_init();
 
 bool pit_increment_time();
+
+// Return seconds
 uint64_t pit_get_time_since_boot();

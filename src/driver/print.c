@@ -24,18 +24,42 @@ char readChar() {
 }
 
 void printChar(char character) {
-    outb(COMport, character);
+    while (1) {
+		if (inb(COMport + 5) & 0x20) {
+			outb(COMport, character);
+			return;
+		}
+	}
 }
 
-__attribute__ ((fastcall)) void print(char* string) {
-    int x = 0;
-    while (string[x] != '\0') {
-        if (inb(COMport + 5) & 0x20) {
-            outb(COMport, string[x]);
-        }
-        outb(COMport + 5, string[x]);
-        x++;
-    }
+__attribute__ ((fastcall)) void print(char* format, ...) {
+	char* traverse;
+	uintptr_t i;
+	char* s;
+	
+	// Module 1: Init arguments
+	va_list arg;
+	va_start(arg, format);
+
+	for(traverse = format; *traverse != '\0'; traverse++) {
+		while (*traverse != '%') {
+			printChar(*traverse);
+			traverse++;
+		}
+
+		traverse++;
+
+		// Module 2: Fetching and executing arguments
+		switch(*traverse) {
+			case 'c': i = va_arg(arg, int);														// Char argument
+				printChar(arg);
+				break;
+			case 'd': i = va_arg(arg, int);														// Integer argument
+				if (i < 10) {
+
+				}
+		}
+	}
 }
 
 __attribute__ ((fastcall)) void println(char* string) {
@@ -43,3 +67,7 @@ __attribute__ ((fastcall)) void println(char* string) {
     print("\n");
 }
 
+__attribute__ ((fastcall)) void printsn(char* string) {
+    print("\33[2K\r");
+    print(string);
+}

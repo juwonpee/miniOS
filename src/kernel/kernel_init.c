@@ -75,6 +75,7 @@ bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
 }
 
 void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapStart) {
+    char tempString[64];
 
 /*-----------------------------------------------------------------------------------------------*/
 /*                                        Physical Memory                                        */
@@ -83,7 +84,7 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
     serialInit();
 
     // Check GRUB/EFI system tables
-    print("Checking Boot Information... ");
+    println("Checking Boot Information... ");
     if (!bootInfo(magic, addr)) {
         println("OK");
     }
@@ -91,8 +92,10 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         println("Error while checking Boot Information");
         panic();
     }
+    println("");
 
-    print("Initializing ACPI tables... ");
+
+    println("Initializing ACPI tables... ");
     acpi_master_table = acpi_init(multiboot_acpi);
     if (!acpi_master_table.OK) {
         println("OK");
@@ -101,8 +104,10 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         println("Error Initializing ACPI");
         panic();
     }
+    println("");
 
-    print("Initializing Interrupts... ");
+
+    println("Initializing Interrupts... ");
     uint16_t cs;
     asm volatile (
         "mov %%cs, %0" 
@@ -116,9 +121,13 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         println ("Error Initializing Interrupts");
         panic();
     }
+    println("");
+
+    // Kernel initialization timing
+    uint64_t kernel_init_time = pit_get_time_since_boot();
 
     // Init memory
-    print("Initializing memory... ");
+    println("Initializing memory... ");
     if (!memory_init(multiboot_meminfo, heapStart)) {
         println("OK");
     }
@@ -126,12 +135,13 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         println ("Error Initializing Memory");
         panic();
     }
+    println("");
 
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
 
-    print("Initializing Drive.. ");
+    println("Initializing Drive.. ");
     if (!ata_init()) {
         println("OK");
     }
@@ -139,12 +149,14 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
         println ("Error Initializing Drive");
         panic();
     }
-    
-    uintptr_t* temp = malloc(40000000);
-    temp = malloc(strlen("Kernel test string"));
-    memcpy("Kernel test string", temp, strlen("Kernel test string"));
+    println("");
 
     
+    uintptr_t* temp = malloc(9000);
+    temp = malloc(strlen("Kernel test string"));
+	memcpy("Kernel test string", temp, strlen("Kernel test string"));
+
+    // Kernel finish init
     
     println("Welcome to miniOS!");
     while(1) {

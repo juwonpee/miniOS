@@ -16,16 +16,28 @@
 
 #include "sched.h"
 
-scheduler_context_t scheduler_context = 0;
+scheduler_context_t context = 0;
 
-void scheduler_kernel_lock() {
-	interrupt_disable();
+scheduler_status_t status = normal;
+
+void scheduler_kernel_uninterruptible() {
+   if (status == scheduler_interruptible) {
+	   interrupt_disable();
+   }
+   else {
+      return;
+   }
 }
 
-void scheduler_kernel_unlock() {
-	interrupt_enable();
+void scheduler_kernel_interruptible() {
+   if (status == scheduler_uninterruptible) {
+      interrupt_enable();
+   }
+   else {
+      return;
+   }
 }
 
 scheduler_context_t scheduler_get_context() {
-	return scheduler_context;
+	return context;
 }

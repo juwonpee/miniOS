@@ -20,14 +20,14 @@
 #include "interrupt.h"
 
 #define SCHED_PID_KERNEL      0
-#define SCHED_PID_NOTHING     0xFFFFFFFF
+#define SCHED_PID_NOTHING     0xFFFF
 
 
 void scheduler_init();
 
-void scheduler_kernel_lock();
+void scheduler_kernel_uninterruptible();
 
-void scheduler_kernel_unlock();
+void scheduler_kernel_interruptible();
 
 scheduler_context_t scheduler_get_context();
 

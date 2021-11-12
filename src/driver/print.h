@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <stdarg.h>
+
 #include "types.h"
 #include "driver/io.h"
 #include "kernel/panic.h"
@@ -30,6 +32,8 @@ char readChar();
 
 void printChar(char character);
 
-__attribute__ ((fastcall)) void print(char* string);
+__attribute__ ((fastcall)) void print(char* format, ...);
 
 __attribute__ ((fastcall)) void println(char* string);
+
+__attribute__ ((fastcall)) void printsn(char* string);

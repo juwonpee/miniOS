@@ -169,7 +169,12 @@ struct multiboot_tag_header {
 
 
 // SCHEDULER TYPES
-typedef uintptr_t scheduler_context_t;
+typedef uint16_t scheduler_context_t;
+
+typedef enum scheduler_status_t {
+	scheduler_interruptible,
+	scheduler_uninterruptible,
+} scheduler_status_t;
 
 
 
@@ -247,11 +252,13 @@ typedef struct memory_virtual_page_descriptor_t {
 	memory_physical_page_descriptor_t* physical_page_descriptor;
 } memory_virtual_page_descriptor_t;
 
-
 typedef struct memory_physical_page_descriptor_t {
 	memory_virtual_page_descriptor_t* virtual_page_descriptor;
 } memory_physical_page_descriptor_t;
 
+typedef struct memory_process_memory_descriptor_t {
+	uintptr_t memory_page_count;
+} memory_process_memory_descriptor_t;
 
 
 // PANIC TYPES
