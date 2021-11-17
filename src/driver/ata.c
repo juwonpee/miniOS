@@ -39,9 +39,9 @@ bool ata_init() {
 	}
 
 	// Check drive activity for 4~5 seconds
-	uint64_t driveStartTime = pit_get_time_since_boot();
+	uint64_t driveStartTime = pit_get_time_since_boot_seconds();
 	while (1) {
-		if (driveStartTime + 5 > pit_get_time_since_boot()) {
+		if (driveStartTime + 5 > pit_get_time_since_boot_seconds()) {
 			if ((inb(ATA_PRIMARY_STATUS_R) & 0x80) == 0) {
 				break;
 			}
@@ -70,9 +70,9 @@ bool ata_init() {
 	}
 
 	// Check drive activity for 4~5 seconds
-	driveStartTime = pit_get_time_since_boot();
+	driveStartTime = pit_get_time_since_boot_seconds();
 	while (1) {
-		if (driveStartTime + 5 > pit_get_time_since_boot()) {
+		if (driveStartTime + 5 > pit_get_time_since_boot_seconds()) {
 			if (inb(ATA_SECONDARY_STATUS_R) & 0x08) {
 				break;
 			}

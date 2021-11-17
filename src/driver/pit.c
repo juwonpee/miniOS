@@ -16,6 +16,7 @@
 
 #include "pit.h"
 
+uint64_t pit_time_since_boot_seconds = 0;
 uint64_t pit_time_since_boot = 0;
 uint32_t pit_frequency;
 uint64_t pit_ticks = 0;
@@ -34,17 +35,21 @@ bool pit_init() {
     return false;
 }
 
-bool pit_increment_time() {
+__attribute__ ((fastcall)) bool pit_increment_time() {
     pit_ticks++;
+    pit_time_since_boot++;
     if (pit_ticks == pit_frequency) {
-        pit_time_since_boot++;
+        pit_time_since_boot_seconds++;
         pit_ticks = 0;
         return true;
     }
     return false;
 }
 
-uint64_t pit_get_time_since_boot() {
-    return pit_time_since_boot;
+uint64_t pit_get_time_since_boot_seconds() {
+    return pit_time_since_boot_seconds;
 }
 
+uint64_t pit_get_time_since_boot_millis() {
+    return pit_ticks * pit_frequency * 1000 / PIT_BASE_FREQUENCY;
+}

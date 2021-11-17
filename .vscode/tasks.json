@@ -1,8 +1,8 @@
 {
     "tasks": [
         {
-            "type": "process",
-            "label": "Launch QEMU",
+            "type": "shell",
+            "label": "Launch QEMU debug",
             "command": "make",
             "args": [
                 "run_debug"
@@ -10,11 +10,7 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "problemMatcher": []
         }
     ],
     "version": "2.0.0"

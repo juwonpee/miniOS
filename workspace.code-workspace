@@ -43,7 +43,8 @@
 			"multiboot2.h": "c",
 			"interrupt.h": "c",
 			"sched.h": "c",
-			"float.h": "c"
+			"float.h": "c",
+			"pit.h": "c"
 		},
 		"C_Cpp.default.compilerPath": "${HOME}/opt/cross/bin/i686-elf-gcc",
 		"C_Cpp.default.intelliSenseMode": "gcc-x86",

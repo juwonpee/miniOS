@@ -22,7 +22,7 @@
 #include "ata.h"
 #include "interrupt.h"
 
-#define PIT_DIVISOR                 8192
+#define PIT_DIVISOR                 65535
 #define PIT_MAX_DIVISOR             65535
 #define PIT_BASE_FREQUENCY          1193182
 
@@ -31,7 +31,10 @@
 
 bool pit_init();
 
-bool pit_increment_time();
+__attribute__ ((fastcall)) bool pit_increment_time();
 
 // Return seconds
-uint64_t pit_get_time_since_boot();
+uint64_t pit_get_time_since_boot_seconds();
+
+// Not properly inplemented as to no accurate timers
+uint64_t pit_get_time_since_boot_millis();

@@ -12,6 +12,16 @@ make run
 
 
 ## Changes:
+
+### Version 0.0.4-pre_release
+Fixed many bugs in memory manager
+New function in memory manager to directly map virtual and physical memory
+Working on PCI initialization functions
+
+### Version 0.0.3-pre_release
+Removed "legacy" print statement, now replaced with printf()
+New memory manager now supports demand paging and separates between kernel space and user space
+
 ### Verision 0.0.2-pre_release
 Totally new kernel memory manager
 malloc() is smarter albiet a bit slower
