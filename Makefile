@@ -31,7 +31,7 @@ clear:
 
 image: check_multiboot
 	grub-mkrescue --modules="normal part_msdos ext2 multiboot multiboot2" -o $(OUTPUT_IMAGE) build/isodir
-# #	dd if=/dev/zero of=$(OUTPUT_IMAGE) bs=512 count=100000
+# #	dd if=/dev/zero of=$(OUTPUT_IMAGE) bs=128 count=100000
 # 	fdisk $(OUTPUT_IMAGE)
 # 	losetup /dev/loop0 $(OUTPUT_IMAGE)
 # 	losetup /dev/loop1 $(OUTPUT_IMAGE) -o 1048576
@@ -68,14 +68,14 @@ check_multiboot:
 
 run:
 	$(QEMU) \
-		-m 512M\
+		-m 128M -M q35 \
 		-hda $(OUTPUT_IMAGE) \
 		-hdb build/fs.hdd \
 		-nographic 
 
 run_debug:	
 	$(QEMU) \
-		-m 512M\
+		-m 128M -M q35 \
 		-hda $(OUTPUT_IMAGE) \
 		-hdb build/fs.hdd \
 		-nographic \
@@ -83,14 +83,14 @@ run_debug:
 
 run_no_grub:	
 	$(QEMU) \
-		-m 512M\
+		-m 128M -M q35 \
 		-kernel $(OUTPUT) \
 		-hdb build/fs.hdd \
 		-nographic 
 
 run_no_grub_debug:	
 	$(QEMU) \
-		-m 512M\
+		-m 128M -M q35 \
 		-kernel $(OUTPUT) \
 		-hdb build/fs.hdd \
 		-nographic \

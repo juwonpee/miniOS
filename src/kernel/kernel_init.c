@@ -77,10 +77,11 @@ bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
 void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapStart) {
 
 /*-----------------------------------------------------------------------------------------------*/
-/*                                        Physical Memory                                        */
+/*                                         Logical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
     // Serial
     serialInit();
+
 
     // Check GRUB/EFI system tables
     println("Checking Boot Information... ");
@@ -96,12 +97,11 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 
     println("Initializing ACPI tables... ");
     acpi_master_table = acpi_init(multiboot_acpi);
-    if (!acpi_master_table.OK) {
+    if (acpi_master_table.OK) {
         println("OK");
     }
     else {
-        println("Error Initializing ACPI");
-        panic();
+        printf("Error Initializing ACPI tables, may cause trouble later");
     }
     println("");
 
@@ -123,7 +123,7 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
     println("");
 
     // Kernel initialization timing
-    uint64_t kernel_init_time = pit_get_time_since_boot();
+    uint64_t kernel_init_time = pit_get_time_since_boot_seconds();
 
     // Init memory
     println("Initializing memory... ");
@@ -140,24 +140,31 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
 
-    println("Initializing Drive.. ");
-    if (!ata_init()) {
-        println("OK");
+    // println("Initializing Drive... ");
+    // if (!ata_init()) {
+    //     println("OK");
+    // }
+    // else {
+    //     println ("Error Initializing Drive");
+    //     panic();
+    // }
+    // println("");
+
+
+    printf("Initializing PCI Devices...\n");
+    if (!pci_init(acpi_master_table.MCFG)) {
+        printf("OK\n");
     }
     else {
-        println ("Error Initializing Drive");
+        printf("Error Initializing PCI Devices");
         panic();
     }
-    println("");
+    printf("\n");
 
-    
-    uintptr_t* temp = malloc(9000);
-    temp = malloc(strlen("Kernel test string"));
-	memcpy("Kernel test string", temp, strlen("Kernel test string"));
 
     // Kernel finish init
-    printf("Kernel initialized in: %d seconds", pit_get_time_since_boot() - kernel_init_time);
-    
+    printf("Kernel initialized in: %d seconds\n", pit_get_time_since_boot_seconds() - kernel_init_time);
+
     println("Welcome to miniOS!");
     while(1) {
         

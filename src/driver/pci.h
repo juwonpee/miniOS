@@ -19,9 +19,10 @@
 #include "types.h"
 #include "multiboot2.h"
 #include "acpi.h"
+#include "memory.h"
 
 #define PCI_CONFIG_ADDRESS 			0xCF8
 #define PCI_CONFIG_DATA				0xCFC
 #define PCI_FORWARDING_REGISTER		0xCFA
 
-bool pci_init(acpi_master_table_t acpi_master_table);
+bool pci_init(acpi_MCFG_t mcfg);

@@ -100,14 +100,10 @@ char* itoa(uint64_t num, char* buffer, int base) {
 
 uintptr_t strlen(char* string) {
     uintptr_t length = 1;
-    while (1) {
-        if (string[length] != '\0') {
-            length++;
-        }
-        else {
-            return length;
-        }
+    for (uintptr_t index = 0; string[index] != '\0'; index++) {
+        length++;
     }
+    return length;
 }
 
 bool strcmp(char* string1, char* string2) {
@@ -127,8 +123,8 @@ bool strcmp(char* string1, char* string2) {
 bool strcmp_notnull(char* string1, char* string2, uintptr_t length) {
     for (uintptr_t i = 0; i < length; i++) {
         if (string1[i] != string2[i]) {
-            return true;
+            return false;
         }
     }
-    return false;
+    return true;
 }

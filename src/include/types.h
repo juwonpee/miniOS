@@ -32,16 +32,33 @@ typedef struct ata_sector_data_t {
 	uint8_t data[512];
 } ata_sector_data_t;
 
+
 // IO TYPES
 
 // PCI TYPES
-typedef struct pci_device_config {
+typedef struct pci_configuration_space_t {
 	uint64_t baseAddress;
-	uint16_t PCISegGroup;
+	uint16_t group_segment_number;
 	uint8_t startBus;
 	uint8_t endBus;
 	uint32_t reserved;
-} __attribute__ ((packed)) pci_device_config;
+} __attribute__ ((packed)) pci_configuration_space_t;
+
+typedef struct pci_device_header_t {
+	uint16_t vendor_id;
+	uint16_t device_id;
+	uint16_t command;
+	uint16_t status;
+	uint8_t revision_id;
+	uint8_t program_interface;
+	uint8_t subClass;
+	uint8_t class;
+	uint8_t cache_line_size;
+	uint8_t latency_timer;
+	uint8_t header_type;
+	uint8_t BIST;
+
+} __attribute__ ((packed)) pci_device_header_t;
 
 // PIT TYPES
 
@@ -92,15 +109,12 @@ typedef struct acpi_xsdt_t {
 	acpi_sdt_header_t* tablePointer[];
 } __attribute__ ((packed)) acpi_xsdt_t;
 
+// Supports up to 64 MCFG entries for now due to how the memory manager currently works (should be plenty enough)
+// TODO (Low prio): Fix this workaround
 typedef struct acpi_MCFG_t {
 	acpi_sdt_header_t header;
 	uint64_t reserved;
-	struct acpi_MCFG_configuration_space {
-		uint64_t* base_address;
-		uint16_t group_segment_number;
-		uint8_t start_pci_number;
-		uint8_t end_pci_number;
-	} configuration_space[];
+	pci_configuration_space_t configurationSpace[64];
 } __attribute ((packed)) acpi_MCFG_t;
 
 typedef struct acpi_master_table_t {
@@ -239,7 +253,7 @@ typedef struct memory_malloc_node_t {
 	uintptr_t size;																				// Size for the total structure
 	struct memory_malloc_node_t* prevNode;												// Included prev node pointer to effeciently finding the previous node in free()
 	struct memory_malloc_node_t* nextNode;												// Included next node pointer to effeciently find the next node or free space
-	uintptr_t data[];
+	uint8_t data[];
 } memory_malloc_node_t;
 
 typedef struct memory_virtual_page_descriptor_t memory_virtual_page_descriptor_t;

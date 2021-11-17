@@ -19,5 +19,6 @@
 #include "types.h"
 #include "multiboot2.h"
 #include "print.h"
+#include "memory.h"
 
 acpi_master_table_t acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi);

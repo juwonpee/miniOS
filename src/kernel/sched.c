@@ -20,21 +20,21 @@ scheduler_context_t context = 0;
 
 scheduler_status_t status = normal;
 
+uintptr_t uninterruptable_counter = 0;
+
 void scheduler_kernel_uninterruptible() {
-   if (status == scheduler_interruptible) {
+   if (uninterruptable_counter == 0) {
+      status = scheduler_uninterruptible;
 	   interrupt_disable();
    }
-   else {
-      return;
-   }
+   uninterruptable_counter++;
 }
 
 void scheduler_kernel_interruptible() {
-   if (status == scheduler_uninterruptible) {
+   uninterruptable_counter--;
+   if (uninterruptable_counter == 0) {
       interrupt_enable();
-   }
-   else {
-      return;
+      status = scheduler_interruptible;
    }
 }
 

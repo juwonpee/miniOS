@@ -32,7 +32,7 @@ memory_physical_page_descriptor_t physical_page_descriptor[1024][1024];
 memory_process_memory_descriptor_t process_memory_descriptor[65536];
 
 void memset(void* address, char value, uintptr_t size) {
-	char* dest_char = (char*)address;\
+	char* dest_char = (char*)address;
 
 	if (size <= 0x4) {
 		for (uintptr_t index = 0; index < size; index++) {
@@ -91,11 +91,12 @@ void* malloc(uintptr_t size) {
 		if (node->prevNode == nullptr && node->nextNode == nullptr && node->size == 0) {
 			// Allocate respective pages and references
 			// Check how many pages this malloc crosses
-			void* nodePage = (void*)node - sizeof(memory_malloc_node_t);
-			for (void* pageIndex = (void*)((uintptr_t)nodePage & 0xFFFFF000); pageIndex <= nodePage + size + sizeof(memory_malloc_node_t); pageIndex += 0x1000) {
+			for (void* pageIndex = (void*)((uintptr_t)node & 0xFFFFF000); (uintptr_t)pageIndex <= (uintptr_t)node + size + sizeof(memory_malloc_node_t); pageIndex += 0x1000) {
 				uintptr_t i = ((uintptr_t)pageIndex & 0xFFC00000) >> 22;
 				uintptr_t j = ((uintptr_t)pageIndex & 0x3FF000) >> 12;
-				memory_kernel_page_alloc(pageIndex);
+				if (!memory_kernel_check_exists(pageIndex)) {
+					memory_kernel_page_alloc(pageIndex);
+				}
 				virtual_page_descriptor[i][j].references++;
 			}
 
@@ -114,37 +115,32 @@ void* malloc(uintptr_t size) {
 				break;
 			}
 		}
+		// If not first empty node
 		else {
 			// Check if last node
 			if (node->nextNode == nullptr) {
+				lastNode = node;
+				node = (memory_malloc_node_t*)((uintptr_t)node + node->size);
 				// Allocate respective pages and references
 				// Check how many pages this malloc crosses
-				void* nodePage = (void*)node - sizeof(memory_malloc_node_t);
-				for (void* pageIndex = (void*)((uintptr_t)nodePage & 0xFFFFF000); pageIndex <= nodePage + size + sizeof(memory_malloc_node_t); pageIndex += 0x1000) {
+				for (void* pageIndex = (void*)((uintptr_t)node & 0xFFFFF000); (uintptr_t)pageIndex <= (uintptr_t)node + size + sizeof(memory_malloc_node_t); pageIndex += 0x1000) {
 					uintptr_t i = ((uintptr_t)pageIndex & 0xFFC00000) >> 22;
 					uintptr_t j = ((uintptr_t)pageIndex & 0x3FF000) >> 12;
-					memory_kernel_page_alloc(pageIndex);
+					if (!memory_kernel_check_exists(pageIndex)) {
+						memory_kernel_page_alloc(pageIndex);
+					}
 					virtual_page_descriptor[i][j].references++;
 				}
 
-				// Add nodes and allocate new pages if necessary
-				if ((uintptr_t)node + size + sizeof(memory_malloc_node_t) < ((uintptr_t)node & 0xFFFFF000) + 0x1000) {		// Fits within current page
+				// Insert new node to end of list
+				node->size = size + sizeof(memory_malloc_node_t);
+				node->prevNode = lastNode;
+				node->nextNode = nullptr;
+				lastNode->nextNode = node;
 
-					// Insert new node to end of list
-					node->size = size + sizeof(memory_malloc_node_t);
-					node->prevNode = lastNode;
-					node->nextNode = nullptr;
-					lastNode->nextNode = node;
-
-					break;
-				}
-				else {																				// Crosses over page, need to allocate new page
-					// Insert new node to end of list
-					node->size = size + sizeof(memory_malloc_node_t);
-
-					break;
-				}
+				break;
 			}
+			// If not last node
 			else if ((uintptr_t)node->nextNode - (uintptr_t)node - node->size >= size + sizeof(memory_malloc_node_t)){		// Increment to next node or check space between nodes
 				memory_malloc_node_t* tempNextNode = node->nextNode;
 				memory_malloc_node_t* tempPrevNode = node;
@@ -161,13 +157,11 @@ void* malloc(uintptr_t size) {
 				// Change prev node pointers
 				tempPrevNode->nextNode = node;
 
-				// Allocate respective pages and references
 				// Check how many pages this malloc crosses
-				void* nodePage = (void*)node - sizeof(memory_malloc_node_t);
-				for (void* pageIndex = (void*)((uintptr_t)nodePage & 0xFFFFF000); pageIndex <= nodePage + size + sizeof(memory_malloc_node_t); pageIndex += 0x1000) {
+				// No need to allocate pages as this is in between nodes
+				for (void* pageIndex = (void*)((uintptr_t)node & 0xFFFFF000); (uintptr_t)pageIndex <= (uintptr_t)node + size + sizeof(memory_malloc_node_t); pageIndex += 0x1000) {
 					uintptr_t i = ((uintptr_t)pageIndex & 0xFFC00000) >> 22;
 					uintptr_t j = ((uintptr_t)pageIndex & 0x3FF000) >> 12;
-					memory_kernel_page_alloc(pageIndex);
 					virtual_page_descriptor[i][j].references++;
 				}
 
@@ -184,39 +178,73 @@ void* malloc(uintptr_t size) {
 	return &node->data;
 }
 
+void malloc_direct_map(void* virtualAddress, void* physicalAddress) {
+	// Kernel critical section
+	scheduler_kernel_uninterruptible();
+	
+	uintptr_t i = ((uintptr_t)virtualAddress & 0xFFC00000) >> 22;
+	uintptr_t j = ((uintptr_t)virtualAddress & 0x3FF000) >> 12;
+
+	uintptr_t x = ((uintptr_t)physicalAddress & 0xFFC00000) >> 22;
+	uintptr_t y = ((uintptr_t)physicalAddress & 0x3FF000) >> 12;
+
+	if (virtual_page_descriptor[i][j].pid != SCHED_PID_NOTHING || physical_page_descriptor[x][y].virtual_page_descriptor != nullptr) {
+		printf("Error malloc_direct_map(%x, %x), page already allocated", (uintptr_t)virtualAddress, (uintptr_t)physicalAddress);
+		panic();
+	}
+	else {
+		// Virtual page descriptor stuff
+		virtual_page_descriptor[i][j].pid = SCHED_PID_KERNEL;
+		virtual_page_descriptor[i][j].references = 0;
+		virtual_page_descriptor[i][j].pageTable = &pageTable[i][j];
+		virtual_page_descriptor[i][j].pageTable->present = 1;
+		virtual_page_descriptor[i][j].pageTable->RW = 1;
+		virtual_page_descriptor[i][j].pageTable->US = 0;
+		virtual_page_descriptor[i][j].pageTable->pageWriteThrough = 0;
+		virtual_page_descriptor[i][j].pageTable->pageCacheDisable = 0;
+		virtual_page_descriptor[i][j].pageTable->global = 0;
+		virtual_page_descriptor[i][j].pageTable->address = (x * 1024 * 4096 + y * 4096) >> 12;
+		virtual_page_descriptor[i][j].physical_page_descriptor = &physical_page_descriptor[x][y];
+
+		// Physical page descriptor stuff
+		physical_page_descriptor[x][y].virtual_page_descriptor = &virtual_page_descriptor[i][j];
+	}
+
+	scheduler_kernel_interruptible();
+}
+
 void free(void* address) {
 	// Kernel critical section
 	scheduler_kernel_uninterruptible();
 
 	memory_malloc_node_t* node = (memory_malloc_node_t*)((uintptr_t)address - sizeof(memory_malloc_node_t));
+
+	uintptr_t size = node->size;
 	
-	// Remove references from pages
-	uintptr_t nodePage = (uintptr_t)node;
-	nodePage += node->size + sizeof(memory_malloc_node_t);
-	uintptr_t numPages = (nodePage & 0xFFFFF000) - ((uintptr_t)node & 0xFFFFF000);
-	for (uintptr_t pageIndex = (uintptr_t)node & 0xFFFFF000; pageIndex <= pageIndex + numPages * 0x1000; pageIndex += 0x1000) {
-		uintptr_t i = (pageIndex & 0xFFC00000) >> 22;
-		uintptr_t j = (pageIndex & 0x3FF000) >> 12;
-		virtual_page_descriptor[i][j].references--;
-		if (virtual_page_descriptor[i][j].references == 0) {
-			memory_kernel_page_free((void*)pageIndex);
-		}
-	}
+	// Clear data
+	memset(&node->data, 0, size);
 
 	// Connect prev node and next node
 	memory_malloc_node_t* prevNode = node->prevNode;
 	memory_malloc_node_t* nextNode = node->nextNode;
 	prevNode->nextNode = nextNode;
-	nextNode->prevNode = prevNode;
-
-	// Clear data
-	for (uintptr_t nodeIndex = 0; nodeIndex < node->size; nodeIndex++) {
-		node->data[nodeIndex] = 0;
+	if (nextNode != nullptr) {
+		nextNode->prevNode = prevNode;
 	}
 
 	node->size = 0;
 	node->nextNode = (memory_malloc_node_t*)nullptr;
 	node->prevNode = (memory_malloc_node_t*)nullptr;
+
+	// Remove references from pages
+	for (void* pageIndex = (void*)((uintptr_t)node & 0xFFFFF000); (uintptr_t)pageIndex <= (uintptr_t)node + size; pageIndex += 0x1000) {
+		uintptr_t i = ((uintptr_t)pageIndex & 0xFFC00000) >> 22;
+		uintptr_t j = ((uintptr_t)pageIndex & 0x3FF000) >> 12;
+		virtual_page_descriptor[i][j].references--;
+		if (virtual_page_descriptor[i][j].references == 0) {
+			memory_kernel_page_free(pageIndex);
+		}
+	}
 
 	scheduler_kernel_interruptible();
 }
@@ -257,31 +285,29 @@ void memory_kernel_page_alloc(void* address) {
 	// Check if kernel page is already allocated
 	uintptr_t i = ((uintptr_t)address & 0xFFC00000) >> 22;
 	uintptr_t j = ((uintptr_t)address & 0x3FF000) >> 12;
-	if (virtual_page_descriptor[i][j].pageTable->present == 0) {
-		// Find free page
-		for (uintptr_t index = 0; index < 1024 * 1024; index++) {
-			uintptr_t x = index / 1024;
-			uintptr_t y = index % 1024;
+	// Find free page
+	for (uintptr_t index = 0; index < 1024 * 1024; index++) {
+		uintptr_t x = index / 1024;
+		uintptr_t y = index % 1024;
 
-			if (physical_page_descriptor[x][y].virtual_page_descriptor == nullptr) {
-				// Virtual page descriptor stuff
-				virtual_page_descriptor[i][j].pid = SCHED_PID_KERNEL;
-				virtual_page_descriptor[i][j].references = 0;
-				virtual_page_descriptor[i][j].pageTable = &pageTable[i][j];
-				virtual_page_descriptor[i][j].pageTable->present = 1;
-				virtual_page_descriptor[i][j].pageTable->RW = 1;
-				virtual_page_descriptor[i][j].pageTable->US = 0;
-				virtual_page_descriptor[i][j].pageTable->pageWriteThrough = 0;
-				virtual_page_descriptor[i][j].pageTable->pageCacheDisable = 0;
-				virtual_page_descriptor[i][j].pageTable->global = 0;
-				virtual_page_descriptor[i][j].pageTable->address = (x * 1024 * 4096 + y * 4096) >> 12;
-				virtual_page_descriptor[i][j].physical_page_descriptor = &physical_page_descriptor[x][y];
+		if (physical_page_descriptor[x][y].virtual_page_descriptor == nullptr) {
+			// Virtual page descriptor stuff
+			virtual_page_descriptor[i][j].pid = SCHED_PID_KERNEL;
+			virtual_page_descriptor[i][j].references = 0;
+			virtual_page_descriptor[i][j].pageTable = &pageTable[i][j];
+			virtual_page_descriptor[i][j].pageTable->present = 1;
+			virtual_page_descriptor[i][j].pageTable->RW = 1;
+			virtual_page_descriptor[i][j].pageTable->US = 0;
+			virtual_page_descriptor[i][j].pageTable->pageWriteThrough = 0;
+			virtual_page_descriptor[i][j].pageTable->pageCacheDisable = 0;
+			virtual_page_descriptor[i][j].pageTable->global = 0;
+			virtual_page_descriptor[i][j].pageTable->address = (x * 1024 * 4096 + y * 4096) >> 12;
+			virtual_page_descriptor[i][j].physical_page_descriptor = &physical_page_descriptor[x][y];
 
-				// Physical page descriptor stuff
-				physical_page_descriptor[x][y].virtual_page_descriptor = &virtual_page_descriptor[i][j];
+			// Physical page descriptor stuff
+			physical_page_descriptor[x][y].virtual_page_descriptor = &virtual_page_descriptor[i][j];
 
-				break;
-			}
+			break;
 		}
 	}
 
@@ -292,7 +318,6 @@ void memory_kernel_page_free(void* address) {
 	// Kernel critical section
 	scheduler_kernel_uninterruptible();
 
-	
 	uintptr_t i = ((uintptr_t)address & 0xFFC00000) >> 22;
 	uintptr_t j = ((uintptr_t)address & 0x3FF000) >> 12;
 
@@ -344,7 +369,7 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
 
 	// Clear multiboot2 info
 	println("Checking & clearing memory");
-	for (void* startPage = heap_start_page; (uintptr_t)startPage < (uintptr_t)heap_end_page + 0x1000; startPage = (void*)((uintptr_t)startPage + 0x400000)) {
+	for (void* startPage = heap_start_page; (uintptr_t)startPage < (uintptr_t)heap_end_page + 0x1000; startPage = (void*)((uintptr_t)startPage + 0x400000)) {	// Leave several last pages as they contain acpi tables
 		char tempString[64];
 		printsn(itoa((uintptr_t)startPage, tempString, 16));
 		memset(startPage, 0, 0x400000);

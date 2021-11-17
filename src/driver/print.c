@@ -73,7 +73,7 @@ __attribute__ ((fastcall)) void printf(char* format, ...) {
 			case 'o': i = va_arg(arg, intptr_t);												// Octal argument
 				printf(itoa(i, tempString, 8));
 				break;
-			case 's': s = va_arg(arg, char*);
+			case 's': s = va_arg(arg, char*);													// String argument
 				printf(s);
 				break;
 		}

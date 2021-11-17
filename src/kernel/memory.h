@@ -33,6 +33,8 @@ void memcpy(void* dest, void* src, uintptr_t size);
 
 void* malloc(uintptr_t size);
 
+void malloc_direct_map(void* virtualAddress, void* physicalAddress);
+
 void free(void* address);
 
 void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* address, void* instruction);
