@@ -68,13 +68,13 @@ __attribute__ ((fastcall)) void printf(char* format, ...) {
 				printf(itoa(i, tempString, 10));
 				break;
 			case 'x': i = va_arg(arg, intptr_t);												// Hexadecimal argument
-				printf(itoa(1, tempString, 16));
+				printf(itoa(i, tempString, 16));
 				break;
 			case 'o': i = va_arg(arg, intptr_t);												// Octal argument
 				printf(itoa(i, tempString, 8));
 				break;
 			case 's': s = va_arg(arg, char*);													// String argument
-				printf(s);
+				if (s != nullptr) printf(s);
 				break;
 		}
 	}

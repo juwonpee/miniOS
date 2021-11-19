@@ -33,7 +33,7 @@ void memcpy(void* dest, void* src, uintptr_t size);
 
 void* malloc(uintptr_t size);
 
-void malloc_direct_map(void* virtualAddress, void* physicalAddress);
+void memory_direct_map(void* virtualAddress, void* physicalAddress);
 
 void free(void* address);
 

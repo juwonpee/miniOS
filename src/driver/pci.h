@@ -25,4 +25,12 @@
 #define PCI_CONFIG_DATA				0xCFC
 #define PCI_FORWARDING_REGISTER		0xCFA
 
+extern char* class_codes[];
+
 bool pci_init(acpi_MCFG_t mcfg);
+
+char* pci_get_device_class(uint8_t class);
+
+char* pci_get_device_vendor_name(uint16_t vendorID);
+
+char* pci_get_device_device_name(uint16_t vendorID, uint16_t deviceID);

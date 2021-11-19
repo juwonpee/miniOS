@@ -82,7 +82,6 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
     // Serial
     serialInit();
 
-
     // Check GRUB/EFI system tables
     println("Checking Boot Information... ");
     if (!bootInfo(magic, addr)) {
@@ -136,20 +135,10 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
     }
     println("");
 
+
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
-
-    // println("Initializing Drive... ");
-    // if (!ata_init()) {
-    //     println("OK");
-    // }
-    // else {
-    //     println ("Error Initializing Drive");
-    //     panic();
-    // }
-    // println("");
-
 
     printf("Initializing PCI Devices...\n");
     if (!pci_init(acpi_master_table.MCFG)) {

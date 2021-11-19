@@ -178,7 +178,7 @@ void* malloc(uintptr_t size) {
 	return &node->data;
 }
 
-void malloc_direct_map(void* virtualAddress, void* physicalAddress) {
+void memory_direct_map(void* virtualAddress, void* physicalAddress) {
 	// Kernel critical section
 	scheduler_kernel_uninterruptible();
 	
@@ -189,7 +189,7 @@ void malloc_direct_map(void* virtualAddress, void* physicalAddress) {
 	uintptr_t y = ((uintptr_t)physicalAddress & 0x3FF000) >> 12;
 
 	if (virtual_page_descriptor[i][j].pid != SCHED_PID_NOTHING || physical_page_descriptor[x][y].virtual_page_descriptor != nullptr) {
-		printf("Error malloc_direct_map(%x, %x), page already allocated", (uintptr_t)virtualAddress, (uintptr_t)physicalAddress);
+		printf("Error malloc_direct_map(%x, %x), page already allocated\n", (uintptr_t)virtualAddress, (uintptr_t)physicalAddress);
 		panic();
 	}
 	else {
@@ -321,11 +321,21 @@ void memory_kernel_page_free(void* address) {
 	uintptr_t i = ((uintptr_t)address & 0xFFC00000) >> 22;
 	uintptr_t j = ((uintptr_t)address & 0x3FF000) >> 12;
 
-	// Virtual page descriptor stuff
-	virtual_page_descriptor[i][j].pid = SCHED_PID_NOTHING;
-	virtual_page_descriptor[i][j].references = 0;
-	virtual_page_descriptor[i][j].pageTable->present = 0;
-	virtual_page_descriptor[i][j].physical_page_descriptor = nullptr;
+	// Check if already free
+	if (virtual_page_descriptor[i][j].pid == SCHED_PID_NOTHING) {
+		printf("Error memory_kernel_page_free(%x), page already allocated\n", (uintptr_t)address);
+		panic();
+	}
+	else {
+		// Virtual page descriptor stuff
+		virtual_page_descriptor[i][j].pid = SCHED_PID_NOTHING;
+		virtual_page_descriptor[i][j].references = 0;
+		virtual_page_descriptor[i][j].pageTable->present = 0;
+
+		// Physical page descriptor stuff
+		virtual_page_descriptor[i][j].physical_page_descriptor->virtual_page_descriptor = nullptr;
+		virtual_page_descriptor[i][j].physical_page_descriptor = nullptr;
+	}
 	
 	scheduler_kernel_interruptible();
 }
@@ -446,7 +456,13 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
 				}
 			}
 			else {
-				pageDirectory[i].present = 0;
+				pageDirectory[i].present = 1;
+				pageDirectory[i].RW = 1;
+				pageDirectory[i].US = 0;
+				pageDirectory[i].pageWriteThrough = 0;
+				pageDirectory[i].pageCacheDisable = 0;
+				pageDirectory[i].size = 1;
+				pageDirectory[i].address = (uint32_t)&pageTable[i] >> 12;
 
 				for (uintptr_t j = 0; j < 1024; j++) {
 					// Virtual page descriptor stuff
