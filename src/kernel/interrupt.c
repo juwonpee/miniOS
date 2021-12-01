@@ -464,7 +464,7 @@ __attribute__ ((interrupt)) void interrupt_isr014(IDT_interruptFrame_t* interrup
 	uint32_t* cr2;
 	asm volatile (
         "movl %%cr2, %0" 
-        : "=a" (cr2)
+        : "=r" (cr2)
         : 
     );
 	IDT_pageFault_error_t pageFault_error;

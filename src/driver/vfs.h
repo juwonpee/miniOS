@@ -15,3 +15,9 @@
 */
 
 #pragma once
+
+#include "ata.h"
+#include "ahci.h"
+#include "acpi.h"
+
+bool vfs_init(pci_device_header_t* ahci_device_address);

@@ -65,12 +65,12 @@ acpi_master_table_t acpi_init(struct multiboot_tag_old_acpi* multiboot_acpi) {
 		printf("\n");
 
 		if (strcmp_notnull((char*)header->signature, "MCFG", 4)) {
-			// Get header data
-			memcpy(&master_table.MCFG, header, sizeof(acpi_sdt_header_t));
-			// Get MCFG configuration data
-			for (uintptr_t j = 0; j < (header->length - sizeof(acpi_sdt_header_t)) / sizeof(pci_configuration_space_t); j++) {
-				memcpy(&master_table.MCFG.configurationSpace[j], &((acpi_MCFG_t*)header)->configurationSpace[j], sizeof(pci_configuration_space_t));
-			}
+			// Get header and MCFG data
+			memcpy(&master_table.MCFG, header, header->length);
+		}
+		else if (strcmp_notnull((char*)header->signature, "APIC" ,4)) {
+			// Get header and MADT entry data
+			memcpy(&master_table.MADT, header, header->length);
 		}
 	}
 	// for (int i = 0; i < entries; i++) {

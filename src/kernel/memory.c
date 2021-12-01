@@ -178,6 +178,149 @@ void* malloc(uintptr_t size) {
 	return &node->data;
 }
 
+void* malloc_align(uintptr_t size, uintptr_t align) {
+    // Kernel critical section
+	scheduler_kernel_uninterruptible();
+
+	// malloc now respects page boundaries
+	// All memory allocations are word size aligned for speed;
+	if (size <= 0xFFFFFFFC) {
+		if (size % 4) {
+			size = size & 0xFFFFFFFC;
+			size += 4;
+		}
+	}
+	else {
+		println("Memory allocation request too large!");
+		panic();
+	}
+
+    // Check align parameter
+    
+
+	memory_malloc_node_t* node = heap_start;
+	memory_malloc_node_t* lastNode = node;
+	while (1) {
+		// Check if the page of current node pointer exists (preventative page fault checks)
+		if (!memory_kernel_check_exists(node)) {
+			memory_kernel_page_alloc(node);
+		}
+
+		// Check if first empty node
+		if (node->prevNode == nullptr && node->nextNode == nullptr && node->size == 0) {
+            // Align node
+            if ((uintptr_t)node % align) {
+                uintptr_t offset = (uintptr_t)node % align;
+                node = (memory_malloc_node_t*)((uintptr_t)node - offset);
+                node = (memory_malloc_node_t*)((uintptr_t)node + align);
+                //node = (memory_malloc_node_t*)((uintptr_t)node - (uintptr_t)node % align + align);
+            }
+
+			// Allocate respective pages and references
+			// Check how many pages this malloc crosses
+			for (void* pageIndex = (void*)((uintptr_t)node & 0xFFFFF000); (uintptr_t)pageIndex <= (uintptr_t)node + size + sizeof(memory_malloc_node_t) + ((uintptr_t)pageIndex); pageIndex += 0x1000) {
+				uintptr_t i = ((uintptr_t)pageIndex & 0xFFC00000) >> 22;
+				uintptr_t j = ((uintptr_t)pageIndex & 0x3FF000) >> 12;
+				if (!memory_kernel_check_exists(pageIndex)) {
+					memory_kernel_page_alloc(pageIndex);
+				}
+				virtual_page_descriptor[i][j].references++;
+			}
+
+			// Add nodes and allocate new pages if necessary
+			if ((uintptr_t)node + size + sizeof(memory_malloc_node_t) < ((uintptr_t)node & 0xFFFFF000) + 0x1000) {		// Fits within current page
+
+				// Insert new node to end of list
+				node->size = size + sizeof(memory_malloc_node_t);
+
+				break;
+			}
+			else {																				// Crosses over page, need to allocate new page
+				// Insert new node to end of list
+				node->size = size + sizeof(memory_malloc_node_t);
+
+				break;
+			}
+		}
+		// If not first empty node
+		else {
+			// Check if last node
+			if (node->nextNode == nullptr) {
+				lastNode = node;
+				node = (memory_malloc_node_t*)((uintptr_t)node + node->size);
+
+                // Align node
+                if ((uintptr_t)node % align) {
+                    uintptr_t offset = (uintptr_t)node % align;
+                    node = (memory_malloc_node_t*)((uintptr_t)node - offset);
+                    node = (memory_malloc_node_t*)((uintptr_t)node + align);
+                }
+
+				// Allocate respective pages and references
+				// Check how many pages this malloc crosses
+				for (void* pageIndex = (void*)((uintptr_t)node & 0xFFFFF000); (uintptr_t)pageIndex <= (uintptr_t)node + size + sizeof(memory_malloc_node_t); pageIndex += 0x1000) {
+					uintptr_t i = ((uintptr_t)pageIndex & 0xFFC00000) >> 22;
+					uintptr_t j = ((uintptr_t)pageIndex & 0x3FF000) >> 12;
+					if (!memory_kernel_check_exists(pageIndex)) {
+						memory_kernel_page_alloc(pageIndex);
+					}
+					virtual_page_descriptor[i][j].references++;
+				}
+
+				// Insert new node to end of list
+				node->size = size + sizeof(memory_malloc_node_t);
+				node->prevNode = lastNode;
+				node->nextNode = nullptr;
+				lastNode->nextNode = node;
+
+				break;
+			}
+			// If not last node
+			else if ((uintptr_t)node->nextNode - (uintptr_t)node - node->size >= size + sizeof(memory_malloc_node_t) + (align - (uintptr_t)node % align)){		// Increment to next node or check space between nodes
+
+                // Align node
+                if ((uintptr_t)node % align) {
+                    uintptr_t offset = (uintptr_t)node % align;
+                    node = (memory_malloc_node_t*)((uintptr_t)node - offset);
+                    node = (memory_malloc_node_t*)((uintptr_t)node + align);
+                }
+                
+				memory_malloc_node_t* tempNextNode = node->nextNode;
+				memory_malloc_node_t* tempPrevNode = node;
+
+				// setup the node in between the two nodes
+				node = (memory_malloc_node_t*)((uintptr_t)node + node->size);
+				node->size = size + sizeof(memory_malloc_node_t);
+				node->nextNode = tempNextNode;
+				node->prevNode = tempPrevNode;
+
+				// Change next node pointers
+				tempNextNode->prevNode = node;
+
+				// Change prev node pointers
+				tempPrevNode->nextNode = node;
+
+				// Check how many pages this malloc crosses
+				// No need to allocate pages as this is in between nodes
+				for (void* pageIndex = (void*)((uintptr_t)node & 0xFFFFF000); (uintptr_t)pageIndex <= (uintptr_t)node + size + sizeof(memory_malloc_node_t); pageIndex += 0x1000) {
+					uintptr_t i = ((uintptr_t)pageIndex & 0xFFC00000) >> 22;
+					uintptr_t j = ((uintptr_t)pageIndex & 0x3FF000) >> 12;
+					virtual_page_descriptor[i][j].references++;
+				}
+
+				break;
+			}
+			else {
+				lastNode = node;
+				node = (memory_malloc_node_t*)(node->size + (uintptr_t)node);
+			}
+		}
+	}
+	
+	scheduler_kernel_interruptible();
+	return &node->data;
+}
+
 void memory_direct_map(void* virtualAddress, void* physicalAddress) {
 	// Kernel critical section
 	scheduler_kernel_uninterruptible();

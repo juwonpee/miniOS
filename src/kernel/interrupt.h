@@ -105,6 +105,44 @@ EAX=1:
 #define IDT_FLAGS_INTERRUPT 	0b10001110
 #define IDT_FLAGS_TRAP			0b10001111
 
+typedef struct IDT_t {
+	union {
+		uint64_t data;
+		struct {
+			uint16_t offset1;
+			uint16_t selector;
+			uint8_t ignore;
+			uint8_t flags; 
+			uint16_t offset2;
+		} __attribute__ ((packed));
+	};
+} __attribute__ ((packed)) IDT_t;
+
+typedef struct IDTR_t {
+	uint16_t limit;
+	uint32_t base;
+} __attribute__ ((packed)) IDTR_t;
+
+typedef struct IDT_interruptFrame_t IDT_interruptFrame_t;
+
+
+
+typedef struct IDT_selector_error_t {
+	union {
+		uint32_t data;
+		struct {
+			uint32_t E:1;																		// External				When set, the exception originated externally to the processor.
+			uint32_t TBL:2;																		/* Table selector		0b00	The Selector Index references a descriptor in the GDT.
+																														0b01	The Selector Index references a descriptor in the IDT.
+																														0b10	The Selector Index references a descriptor in the LDT.
+																														0b11	The Selector Index references a descriptor in the IDT. */
+			uint32_t index:13;																	// Selector index		The index in the GDT, IDT or LDT. 
+			uint32_t reserved:16;
+		} __attribute__ ((packed));
+	};
+} __attribute__ ((packed)) IDT_selector_error_t;
+
+
 void interrupt_idt_init(uint16_t cs);
 void interrupt_pic_init(uint8_t offset1, uint8_t offset2);
 void interrupt_disable();

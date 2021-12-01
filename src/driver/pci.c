@@ -19,7 +19,7 @@
 char tempString[64];
 
 
-void enumerate_function(uint64_t deviceAddress, uint64_t function) {
+void enumerate_function(uint64_t deviceAddress, uint64_t function, pci_device_header_t* ahci_device_address) {
 	uintptr_t offset = function << 12;
 	uintptr_t functionAddress = deviceAddress + offset;
 
@@ -31,12 +31,16 @@ void enumerate_function(uint64_t deviceAddress, uint64_t function) {
 	if (device_header->device_id == 0 || device_header->device_id == 0xFFFF) return;
 
 	printf("%s %s %s\n", pci_get_device_vendor_name(device_header->vendor_id), pci_get_device_device_name(device_header->vendor_id, device_header->device_id), pci_get_device_class(device_header->class));
+	if (device_header->class == 0x1 && device_header->subClass == 0x6 && device_header->program_interface == 0x1) {
+		//ahci_init(device_header);
+		*ahci_device_address = *device_header;
+	}
 
 	return;
 
 }
 
-void enumerate_device(uint64_t busAddress, uint64_t device) {
+void enumerate_device(uint64_t busAddress, uint64_t device, pci_device_header_t* ahci_device_address) {
 	uintptr_t offset = device << 15;
 	uintptr_t deviceAddress = busAddress + offset;
 
@@ -48,12 +52,12 @@ void enumerate_device(uint64_t busAddress, uint64_t device) {
 	if (device_header->device_id == 0 || device_header->device_id == 0xFFFF) return;
 	else {
 		for (uintptr_t function = 0; function < 8; function++) {
-			enumerate_function(deviceAddress, function);
+			enumerate_function(deviceAddress, function, ahci_device_address);
 		}
 	}
 }
 
-void enumerate_bus(uint64_t baseAddress, uintptr_t bus) {
+void enumerate_bus(uint64_t baseAddress, uintptr_t bus, pci_device_header_t* ahci_device_address) {
 	uintptr_t offset = bus << 20;
 	uintptr_t busAddress = baseAddress + offset;
 
@@ -65,12 +69,12 @@ void enumerate_bus(uint64_t baseAddress, uintptr_t bus) {
 	if (device_header->device_id == 0 || device_header->device_id == 0xFFFF) return;
 	else {
 		for (uintptr_t device = 0; device < 32; device++) {
-			enumerate_device(busAddress, device);
+			enumerate_device(busAddress, device, ahci_device_address);
 		}
 	}
 }
 
-bool enumerate_pci(acpi_MCFG_t mcfg) {
+bool enumerate_pci(acpi_MCFG_t mcfg, pci_device_header_t* ahci_device_address) {
 	uintptr_t entries = (mcfg.header.length - sizeof(acpi_sdt_header_t)) / sizeof(pci_configuration_space_t);
 
 	// Discover PCI devices
@@ -78,14 +82,14 @@ bool enumerate_pci(acpi_MCFG_t mcfg) {
 	for (uintptr_t i = 0; i < entries; i++) {
 		pci_configuration_space_t device = mcfg.configurationSpace[i];
 		for (uintptr_t bus = (uintptr_t)device.startBus; bus < device.endBus; bus++) {
-			enumerate_bus(device.baseAddress, bus);
+			enumerate_bus(device.baseAddress, bus, ahci_device_address);
 		}
 	}
 	return false;
 }
 
-bool pci_init(acpi_MCFG_t mcfg) {
-	if (enumerate_pci(mcfg)) {
+bool pci_init(acpi_MCFG_t mcfg, pci_device_header_t* ahci_device_address) {
+	if (enumerate_pci(mcfg, ahci_device_address)) {
 		return true;
 	}
 	return false;

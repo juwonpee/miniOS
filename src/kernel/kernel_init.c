@@ -5,7 +5,7 @@
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
 
-     http://www.apache.org/licenses/LICENSE-2.0
+	 http://www.apache.org/licenses/LICENSE-2.0
 
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,9 +15,9 @@
 */
 
 
+#include <cpuid.h>
 
 #include "types.h"
-#include "kernel_init.h"
 #include "io.h"
 #include "print.h"
 #include "memory.h"
@@ -27,51 +27,88 @@
 #include "pci.h"
 #include "multiboot2.h"
 #include "acpi.h"
+#include "ahci.h"
+#include "vfs.h"
 //#include "ata.h"
+
+struct multiboot_tag_header {
+	multiboot_uint32_t total_size;
+	multiboot_uint32_t reserved;
+};
+
 
 struct multiboot_tag_basic_meminfo* multiboot_meminfo;
 struct multiboot_tag_old_acpi* multiboot_acpi;
 acpi_master_table_t acpi_master_table;
 
+pci_device_header_t ahci_device;
+
 bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
-    char tempString[64];
+	char tempString[64];
 
-    /* Make sure the magic number matches for memory mapping*/
-    if(magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
-        println("Fatal Error: Invalid multiboot2 magic number");
-        printf("Check if booted by multiboot2 compliant bootloader");
-        println(itoa(magic, tempString, 16));
-        return ATA_TRUSTED_RECIEVE;
-    }
+	/* Make sure the magic number matches for memory mapping*/
+	if(magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
+		println("Fatal Error: Invalid multiboot2 magic number");
+		printf("Check if booted by multiboot2 compliant bootloader");
+		println(itoa(magic, tempString, 16));
+		return ATA_TRUSTED_RECIEVE;
+	}
 
-    if ((uintptr_t)addr & 7) {
-        println("Unaligned MBI");       // Whatever mbi is
-        return true;;
-    }
+	if ((uintptr_t)addr & 7) {
+		println("Unaligned MBI");       // Whatever mbi is
+		return true;;
+	}
 
-    for (
-        struct multiboot_tag* mbi = (struct multiboot_tag*)((uintptr_t)(addr) + sizeof(struct multiboot_tag_header)); 
-        (uintptr_t)mbi < addr -> total_size + (uintptr_t)addr; 
-        mbi = (struct multiboot_tag*)(((uintptr_t)mbi) + mbi -> size)
-    ) {
-        // 8 byte alignment
-        if ((uintptr_t)mbi % 8 != 0) {
-            mbi = (struct multiboot_tag*)(((uintptr_t)mbi & 0xFFFFFFF8) + 0x8);
-        }
-        switch (mbi -> type) {
-            case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
-                printf("Bootloader: ");
-                println(((struct multiboot_tag_string*)mbi) -> string);
-                break;
-            case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
-                multiboot_meminfo = (struct multiboot_tag_basic_meminfo*)mbi;
-                break;
-            case MULTIBOOT_TAG_TYPE_ACPI_OLD:
-                multiboot_acpi = (struct multiboot_tag_old_acpi*)mbi;
-                break;
-        }    
-    }
-    return false;
+	for (
+		struct multiboot_tag* mbi = (struct multiboot_tag*)((uintptr_t)(addr) + sizeof(struct multiboot_tag_header)); 
+		(uintptr_t)mbi < addr -> total_size + (uintptr_t)addr; 
+		mbi = (struct multiboot_tag*)(((uintptr_t)mbi) + mbi -> size)
+	) {
+		// 8 byte alignment
+		if ((uintptr_t)mbi % 8 != 0) {
+			mbi = (struct multiboot_tag*)(((uintptr_t)mbi & 0xFFFFFFF8) + 0x8);
+		}
+		switch (mbi -> type) {
+			case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
+				printf("Bootloader: ");
+				println(((struct multiboot_tag_string*)mbi) -> string);
+				break;
+			case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
+				multiboot_meminfo = (struct multiboot_tag_basic_meminfo*)mbi;
+				break;
+			case MULTIBOOT_TAG_TYPE_ACPI_OLD:
+				multiboot_acpi = (struct multiboot_tag_old_acpi*)mbi;
+				break;
+		}    
+	}
+	return false;
+}
+
+bool cpu_check() {
+	uintptr_t eax;
+	uintptr_t ebx;
+	uintptr_t ecx;
+	uintptr_t edx;
+
+	__cpuid(0, eax, ebx, ecx, edx);
+
+	char vendorString[13];
+	vendorString[0] = (char)ebx;
+	vendorString[1] = (char)(ebx >> 8);
+	vendorString[2] = (char)(ebx >> 16);
+	vendorString[3] = (char)(ebx >> 24);
+	vendorString[4] = (char)edx;
+	vendorString[5] = (char)(edx >> 8);
+	vendorString[6] = (char)(edx >> 16);
+	vendorString[7] = (char)(edx >> 24);
+	vendorString[8] = (char)ecx;
+	vendorString[9] = (char)(ecx >> 8);
+	vendorString[10] = (char)(ecx >> 16);
+	vendorString[11] = (char)(ecx >> 24);
+	vendorString[12] = '\0';
+	printf("CPU Vendor: %s", vendorString);
+
+	return false;
 }
 
 void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapStart) {
@@ -79,85 +116,107 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Logical Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
-    // Serial
-    serialInit();
+	// Serial
+	serialInit();
+	printf("\n");
 
-    // Check GRUB/EFI system tables
-    println("Checking Boot Information... ");
-    if (!bootInfo(magic, addr)) {
-        println("OK");
-    }
-    else {
-        println("Error while checking Boot Information");
-        panic();
-    }
-    println("");
+	// Check if processor is pentium3 compatible
+	printf("Checking CPU... \n");
+	if (!cpu_check()) {
+		printf("OK\n");
+	}
+	else {
+		printf("Error while checking CPU\n");
+		panic();
+	}
+	printf("\n");
+
+	// Check GRUB/EFI system tables
+	println("Checking Boot Information... ");
+	if (!bootInfo(magic, addr)) {
+		println("OK");
+	}
+	else {
+		println("Error while checking Boot Information");
+		panic();
+	}
+	println("");
 
 
-    println("Initializing ACPI tables... ");
-    acpi_master_table = acpi_init(multiboot_acpi);
-    if (acpi_master_table.OK) {
-        println("OK");
-    }
-    else {
-        printf("Error Initializing ACPI tables, may cause trouble later");
-    }
-    println("");
+	println("Initializing ACPI tables... ");
+	acpi_master_table = acpi_init(multiboot_acpi);
+	if (acpi_master_table.OK) {
+		println("OK");
+	}
+	else {
+		printf("Error Initializing ACPI tables, may cause trouble later");
+	}
+	println("");
 
 
-    println("Initializing Interrupts... ");
-    uint16_t cs;
-    asm volatile (
-        "mov %%cs, %0" 
-        : "=r" (cs)
-        : 
-    );
-    if (!interrupt_init(cs)) {
-        println("OK");
-    }
-    else {
-        println ("Error Initializing Interrupts");
-        panic();
-    }
-    println("");
+	println("Initializing Interrupts... ");
+	uint16_t cs;
+	asm volatile (
+		"mov %%cs, %0" 
+		: "=r" (cs)
+		: 
+	);
+	if (!interrupt_init(cs)) {
+		println("OK");
+	}
+	else {
+		println ("Error Initializing Interrupts");
+		panic();
+	}
+	println("");
 
-    // Kernel initialization timing
-    uint64_t kernel_init_time = pit_get_time_since_boot_seconds();
+	// Kernel initialization timing
+	uint64_t kernel_init_time = pit_get_time_since_boot_seconds();
 
-    // Init memory
-    println("Initializing memory... ");
-    if (!memory_init(multiboot_meminfo, heapStart)) {
-        println("OK");
-    }
-    else {
-        println ("Error Initializing Memory");
-        panic();
-    }
-    println("");
+	// Init memory
+	println("Initializing memory... ");
+	if (!memory_init(multiboot_meminfo, heapStart)) {
+		println("OK");
+	}
+	else {
+		println ("Error Initializing Memory");
+		panic();
+	}
+	println("");
 
 
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
 
-    printf("Initializing PCI Devices...\n");
-    if (!pci_init(acpi_master_table.MCFG)) {
-        printf("OK\n");
-    }
-    else {
-        printf("Error Initializing PCI Devices");
-        panic();
-    }
-    printf("\n");
+	printf("Initializing PCI Devices...\n");
+	if (!pci_init(acpi_master_table.MCFG, &ahci_device)) {
+		printf("OK\n");
+	}
+	else {
+		printf("Error Initializing PCI Devices\n");
+		panic();
+	}
+	printf("\n");
 
 
-    // Kernel finish init
-    printf("Kernel initialized in: %d seconds\n", pit_get_time_since_boot_seconds() - kernel_init_time);
+	// Initializing file system
+	printf("Initializing Virtual File System...\n");
+	if (!vfs_init(&ahci_device)) {
+		printf("OK\n");
+	}
+	else {
+		printf("Error Initializing Virtual File System\n");
+		panic();
+	}
 
-    println("Welcome to miniOS!");
-    while(1) {
-        
-    }
+
+	// Kernel finish init
+	printf("Kernel initialized in: %d seconds\n", pit_get_time_since_boot_seconds() - kernel_init_time);
+
+	println("Welcome to miniOS!");
+	while(1) {
+	}
 }
 
 

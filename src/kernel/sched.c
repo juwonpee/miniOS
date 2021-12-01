@@ -16,15 +16,17 @@
 
 #include "sched.h"
 
-scheduler_context_t context = 0;
+scheduler_pid_t context = 0;
 
 scheduler_status_t status = normal;
 
 uintptr_t uninterruptable_counter = 0;
 
+
+
 void scheduler_kernel_uninterruptible() {
    if (uninterruptable_counter == 0) {
-      status = scheduler_uninterruptible;
+      status = uninterruptible;
 	   interrupt_disable();
    }
    uninterruptable_counter++;
@@ -34,10 +36,10 @@ void scheduler_kernel_interruptible() {
    uninterruptable_counter--;
    if (uninterruptable_counter == 0) {
       interrupt_enable();
-      status = scheduler_interruptible;
+      status = interruptible;
    }
 }
 
-scheduler_context_t scheduler_get_context() {
+scheduler_pid_t scheduler_get_context() {
 	return context;
 }

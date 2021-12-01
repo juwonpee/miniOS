@@ -31,30 +31,7 @@ clear:
 
 image: check_multiboot
 	grub-mkrescue --modules="normal part_msdos ext2 multiboot multiboot2" -o $(OUTPUT_IMAGE) build/isodir
-# #	dd if=/dev/zero of=$(OUTPUT_IMAGE) bs=128 count=100000
-# 	fdisk $(OUTPUT_IMAGE)
-# 	losetup /dev/loop0 $(OUTPUT_IMAGE)
-# 	losetup /dev/loop1 $(OUTPUT_IMAGE) -o 1048576
-# 	mke2fs /dev/loop0
-# 	mkfs.vfat -F 32 /dev/loop1
-# 	mmd -i /dev/loop1 ::boot
-# 	mcopy -i /dev/loop1 build/isodir/boot/miniOS.bin ::boot/miniOS.bin
-# 	mmd -i /dev/loop1 ::boot/grub
-# 	mcopy -i /dev/loop1 build/isodir/boot/grub/grub.cfg ::boot/grub/grub.cfg
-# 	grub-install --target=i386-pc --force --root-directory=/mnt --no-floppy --modules="normal part_msdos ext2 multiboot multiboot2" /dev/loop0
-# 	losetup -d /dev/loop0
-# 	losetup -d /dev/loop1
 
-fs:
-	dd if=/dev/zero of=build/fs.hdd bs=1M count=50
-	fdisk build/fs.hdd
-	mkfs.vfat build/fs.hdd
-	mkdir tempMount
-	mount build/fs.hdd tempMount
-	cp -r build/test_files tempMount
-	umount tempMount
-	rm -r tempMount
-#ontcw
 
 %.o: %.c
 	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS)
@@ -68,30 +45,15 @@ check_multiboot:
 
 run:
 	$(QEMU) \
-		-m 128M -M q35 \
-		-hda $(OUTPUT_IMAGE) \
-		-hdb build/fs.hdd \
+		-m 128M -M q35 -cpu pentium3 \
+		-drive id=disk,file=$(OUTPUT_IMAGE),if=none \
+		-device ahci,id=ahci \
+		-device ide-hd,drive=disk,bus=ahci.0
 		-nographic 
 
 run_debug:	
 	$(QEMU) \
-		-m 128M -M q35 \
+		-m 128M -M q35 -cpu pentium3 \
 		-hda $(OUTPUT_IMAGE) \
-		-hdb build/fs.hdd \
-		-nographic \
-		-S -s
-
-run_no_grub:	
-	$(QEMU) \
-		-m 128M -M q35 \
-		-kernel $(OUTPUT) \
-		-hdb build/fs.hdd \
-		-nographic 
-
-run_no_grub_debug:	
-	$(QEMU) \
-		-m 128M -M q35 \
-		-kernel $(OUTPUT) \
-		-hdb build/fs.hdd \
 		-nographic \
 		-S -s
