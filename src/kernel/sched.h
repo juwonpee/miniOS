@@ -104,6 +104,6 @@ void scheduler_switch_to(scheduler_user_thread_t);
 
 void scheduler_interrupt_handler();
 
-void scheduler_create_thread
+void scheduler_create_thread();
 
 void schedule();
