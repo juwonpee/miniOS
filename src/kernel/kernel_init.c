@@ -126,8 +126,7 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 		printf("OK\n");
 	}
 	else {
-		printf("Error while checking CPU\n");
-		panic();
+		panic("Error while checking CPU\n");
 	}
 	printf("\n");
 
@@ -137,8 +136,7 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 		println("OK");
 	}
 	else {
-		println("Error while checking Boot Information");
-		panic();
+		panic("Error while checking Boot Information");
 	}
 	println("");
 
@@ -165,8 +163,7 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 		println("OK");
 	}
 	else {
-		println ("Error Initializing Interrupts");
-		panic();
+		panic("Error Initializing Interrupts");
 	}
 	println("");
 
@@ -179,8 +176,7 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 		println("OK");
 	}
 	else {
-		println ("Error Initializing Memory");
-		panic();
+		panic("Error Initializing Memory");
 	}
 	println("");
 
@@ -194,8 +190,7 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 		printf("OK\n");
 	}
 	else {
-		printf("Error Initializing PCI Devices\n");
-		panic();
+		panic("Error Initializing PCI Devices\n");
 	}
 	printf("\n");
 
@@ -206,8 +201,7 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 		printf("OK\n");
 	}
 	else {
-		printf("Error Initializing Virtual File System\n");
-		panic();
+		panic("Error Initializing PCI Devices\n");
 	}
 
 

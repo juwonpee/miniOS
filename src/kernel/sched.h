@@ -26,9 +26,9 @@
 
 
 // Forward declarations
-typedef struct memory_pageDirectoryCR3_t memory_pageDirectoryCR3_t;
-typedef struct memory_pageDirectory_t memory_pageDirectory_t;
-typedef struct memory_pageTable_t memory_pageTable_t;
+typedef struct memoryPageDirectoryCR3_t memoryPageDirectoryCR3_t;
+typedef struct memoryPageDirectory_t memoryPageDirectory_t;
+typedef struct memoryPageTable_t memoryPageTable_t;
 
 
 typedef enum scheduler_status_t {
@@ -85,9 +85,9 @@ typedef struct scheduler_user_thread_t {
     char name[256];
 
     // Memory specific
-    memory_pageDirectoryCR3_t* pageDirectoryCR3;
-    memory_pageDirectory_t* pageDirectory;
-    memory_pageTable_t* pageTable;
+    memoryPageDirectoryCR3_t* pageDirectoryCR3;
+    memoryPageDirectory_t* pageDirectory;
+    memoryPageTable_t* pageTable;
 } __attribute__ ((packed)) scheduler_user_thread_t;
 
 

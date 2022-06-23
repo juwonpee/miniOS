@@ -26,7 +26,7 @@ bootloader:
 kernel: bootloader $(C_OBJ)
 	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
 
-clear:
+clean:
 	find . -name "*.o" | xargs -r rm 
 
 image: check_multiboot
@@ -45,7 +45,7 @@ check_multiboot:
 
 run:
 	$(QEMU) \
-		-m 128M -M q35 -cpu pentium3 \
+		-m 128M -M q35 -cpu pentium3 -m 1G\
 		-drive id=disk,file=$(OUTPUT_IMAGE),if=none \
 		-device ahci,id=ahci \
 		-device ide-hd,drive=disk,bus=ahci.0
@@ -53,7 +53,7 @@ run:
 
 run_debug:	
 	$(QEMU) \
-		-m 128M -M q35 -cpu pentium3 \
+		-m 128M -M q35 -cpu pentium3 -m 1G\
 		-hda $(OUTPUT_IMAGE) \
 		-nographic \
 		-S -s

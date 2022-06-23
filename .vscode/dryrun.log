@@ -1,0 +1,11 @@
+make --dry-run --keep-going --print-directory
+make: Entering directory '/home/juwonpee/projects/miniOS'
+i686-elf-gcc -Isrc/ -Isrc/include/ -Isrc/kernel -Isrc/driver -g -c src/bootloader/bootloader.S -o src/bootloader/bootloader.o
+ 
+i686-elf-gcc -T src/linker.ld -o build/isodir/boot/miniOS.bin src/bootloader/bootloader.o src/driver/ahci.o src/driver/apic.o src/driver/ata.o src/driver/io.o src/driver/pci.o src/driver/pit.o src/driver/print.o src/driver/vfs.o src/include/math.o src/include/string.o src/kernel/acpi.o src/kernel/interrupt.o src/kernel/kernel_init.o src/kernel/memory.o src/kernel/panic.o src/kernel/sched.o -lgcc -nostdlib
+grub-file --is-x86-multiboot2 build/isodir/boot/miniOS.bin
+grub-mkrescue --modules="normal part_msdos ext2 multiboot multiboot2" -o build/miniOS.iso build/isodir
+make: Leaving directory '/home/juwonpee/projects/miniOS'
+ 
+make: *** No rule to make target 'clear', needed by 'binary'.
+

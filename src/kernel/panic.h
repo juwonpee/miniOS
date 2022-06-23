@@ -19,4 +19,5 @@
 #include "types.h"
 #include "driver/print.h"
 
-void panic();
+
+void panic(char* messege);

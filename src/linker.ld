@@ -60,6 +60,6 @@ SECTIONS
 	   a segment with the same name. Simply add stuff here as needed. */
 	
 
-	. = ALIGN(4096); /* align to page size */
+	. = ALIGN(4M); /* align to page directory size */
     _end = .;
 }

@@ -26,8 +26,17 @@
 #include "interrupt.h"
 
 #define nullptr (void*)0x0
+#define NULL 0
 
-typedef struct memory_pageDirectoryCR3_t {
+// Memory allocation definitions
+#define MEM_KERNEL_START	0x00000000
+#define MEM_USR_START 		0x08000000 // 128MB
+#define MEM_USR_END 		0xFFFFFFFF
+
+#define MEM_KERNEL_SIZE		MEM_USR_START-MEM_KERNEL_START
+
+
+typedef struct memoryPageDirectoryCR3_t {
 	union {
 		uint32_t data;
 		struct {
@@ -38,15 +47,15 @@ typedef struct memory_pageDirectoryCR3_t {
 			uint32_t address:20;
 		};
 	};
-} __attribute__ ((packed)) memory_pageDirectoryCR3_t;
+} __attribute__ ((packed)) memoryPageDirectoryCR3_t;
 
-typedef struct memory_pageDirectory_t {
+typedef struct memoryPageDirectory_t {
 	union {
 		uint32_t data;
 		struct {
 			uint32_t present:1;
-			uint32_t RW:1;                                          // Read/Write
-			uint32_t US:1;                                          // 0: Supervisor						1: User
+			uint32_t readWrite:1;                                          // Read/Write
+			uint32_t userMode:1;                                          // 0: Supervisor						1: User
 			uint32_t pageWriteThrough:1;                            // 0: Write back						1: Write through
 			uint32_t pageCacheDisable:1;							// 0: Cache								1: Cache disable
 			uint32_t accessed:1;
@@ -56,17 +65,17 @@ typedef struct memory_pageDirectory_t {
 			uint32_t address:20;
 		};
 	};
-} __attribute__ ((packed)) memory_pageDirectory_t;
+} __attribute__ ((packed)) memoryPageDirectory_t;
 
-typedef struct memory_pageTable_t {
+typedef struct memoryPageTable_t {
 	union {
 		uint32_t data;
 		struct {
 			uint32_t present:1;
-			uint32_t RW:1;                                         // Read/Write
-			uint32_t US:1;                                          // 0: Supervisor						1: User
-			uint32_t pageWriteThrough:1;                            // 0: Write back						1: Write through
-			uint32_t pageCacheDisable:1;							// 0: Cache								1: Cache disable
+			uint32_t readWrite:1;											// Read/Write
+			uint32_t userMode:1;											// 0: Supervisor						1: User
+			uint32_t pageWriteThrough:1;									// 0: Write back						1: Write through
+			uint32_t pageCacheDisable:1;									// 0: Cache								1: Cache disable
 			uint32_t accessed:1;
 			uint32_t dirty:1;
 			uint32_t PAT:1;                                         // PAT, not enabled so must stay zero
@@ -75,38 +84,21 @@ typedef struct memory_pageTable_t {
 			uint32_t address:20;
 		};
 	};
-} __attribute__ ((packed)) memory_pageTable_t;
+} __attribute__ ((packed)) memoryPageTable_t;
 
-typedef struct memory_pageDirectory_owner_t {
-	memory_pageDirectory_t* page;
-	bool free;
-	uintptr_t pid;
-} memory_pageDirectory_owner_t;
 
-typedef struct memory_malloc_node_t {
-	uintptr_t size;																				// Size for the total structure
-	struct memory_malloc_node_t* prevNode;												// Included prev node pointer to effeciently finding the previous node in free()
-	struct memory_malloc_node_t* nextNode;												// Included next node pointer to effeciently find the next node or free space
-	uint8_t data[];
-} memory_malloc_node_t;
-
-typedef struct memory_virtual_page_descriptor_t memory_virtual_page_descriptor_t;
-typedef struct memory_physical_page_descriptor_t memory_physical_page_descriptor_t;
-
-typedef struct memory_virtual_page_descriptor_t {
-	uintptr_t references;
+typedef struct memoryProcessMemoryDescriptor_t {
+	uintptr_t references;													// Number of process references to page directory to determine if page is being used
 	scheduler_pid_t pid;
-	memory_pageTable_t* pageTable;
-	memory_physical_page_descriptor_t* physical_page_descriptor;
-} memory_virtual_page_descriptor_t;
+	memoryPageDirectory_t* pageDirectory;
+} memoryProcessMemoryDescriptor_t;
 
-typedef struct memory_physical_page_descriptor_t {
-	memory_virtual_page_descriptor_t* virtual_page_descriptor;
-} memory_physical_page_descriptor_t;
-
-typedef struct memory_process_memory_descriptor_t {
-	uintptr_t memory_page_count;
-} memory_process_memory_descriptor_t;
+typedef struct memoryMallocNode_t {
+	uintptr_t size;															// Size includes the node
+	struct memoryMallocNode_t* prev;
+	struct memoryMallocNode_t* next;
+	uintptr_t data[];
+} memoryMallocNode_t;
 
 
 
@@ -114,18 +106,19 @@ void memset(void* address, char value, uintptr_t size);
 
 void memcpy(void* dest, void* src, uintptr_t size);
 
-void* malloc(uintptr_t size);
+void* kmalloc(uintptr_t size);
+
+void kfree(void* address);
 
 // align parameter is a bit mask for the align size, 0x10: align at 16 byte boundaries, 0x1000: align at 4096 byte boundaries
-void* malloc_align(uintptr_t size, uintptr_t align);
+void* kmalloc_align(uintptr_t size, uintptr_t align);
 
 void memory_direct_map(void* virtualAddress, void* physicalAddress);
 
-void free(void* address);
 
 void memory_kernel_page_alloc(void* address);
 
-void memory_kernel_page_free(void*  address);
+void memory_kernel_page_free(void* address);
 
 void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* address, void* instruction);
 

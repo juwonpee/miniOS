@@ -33,7 +33,7 @@ void serialInit() {
     outb(COMport + 0, 0xAE);    // Test serial chip (send byte 0xAE and check if serial returns same byte)
     
     if (inb(COMport) != 0xAE) { // If not the same packet as recieved.
-        panic();
+        panic("IO Error: Did not recieve the same packet during initialization");
     }
     outb(COMport + 4, 0x0F);    // Return port to normal state
 

@@ -425,9 +425,8 @@ __attribute__ ((interrupt)) void interrupt_isr007(IDT_interruptFrame_t* interrup
 }
 
 __attribute__ ((interrupt)) void interrupt_isr008(IDT_interruptFrame_t* interruptFrame) {
-	println("Interrupt: 008, Double fault!");
 	interrupt_Counter[8] += 1;
-	panic();
+	panic("Interrupt: 008, Double fault!");
 }
 
 __attribute__ ((interrupt)) void interrupt_isr009(IDT_interruptFrame_t* interruptFrame) {

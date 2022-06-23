@@ -2,7 +2,7 @@
 My personal 32-bit Operating system project without any specific goals in mind. 
 
 ## Requirements
-qemu-system-i386 with a pentium instruction set and at least 64M of memory
+qemu-system-i386 with a pentium instruction set and at least 1G of memory
 
 ## To run
 ```bash
