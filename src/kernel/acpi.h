@@ -21,7 +21,6 @@
 #include "print.h"
 #include "memory.h"
 #include "apic.h"
-#include "pci.h"
 
 
 typedef struct acpi_rsdp_descriptor_t {

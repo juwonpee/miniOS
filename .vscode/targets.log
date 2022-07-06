@@ -5,8 +5,9 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
+ 
 
-# Make data base, printed on Mon Jun 20 18:06:33 2022
+# Make data base, printed on Wed Jul  6 23:37:30 2022
 
 # Variables
 
@@ -17,12 +18,13 @@ OUTPUT = build/isodir/boot/miniOS.bin
 # environment
 LC_ALL = C
 # environment
+PULSE_SERVER = /mnt/wslg/PulseServer
+# environment
 WSLENV = VSCODE_WSL_EXT_LOCATION/up
 # makefile (from 'Makefile', line 7)
 SRC_DIR = src
 # environment
 VSCODE_CWD = /mnt/c/Users/juwon/AppData/Local/Programs/Microsoft VS Code
- 
 # default
 MAKE_COMMAND := make
 # environment
@@ -38,7 +40,7 @@ VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
 .VARIABLES := 
 # environment
-PWD = /home/juwonpee/projects/miniOS
+PWD = /home/juwonpee/Share/projects/miniOS
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # environment
@@ -50,6 +52,8 @@ VSCODE_LOG_STACK = false
 # automatic
 %F = $(notdir $%)
 # environment
+CONDA_PROMPT_MODIFIER = (base) 
+# environment
 LANG = C
 # default
 .LOADED := 
@@ -58,7 +62,7 @@ LANG = C
 # makefile
 MAKEFLAGS = pqrR
 # makefile
-CURDIR := /home/juwonpee/projects/miniOS
+CURDIR := /home/juwonpee/Share/projects/miniOS
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
@@ -71,16 +75,22 @@ LESSOPEN = | /usr/bin/lesspipe %s
 MFLAGS = -pqrR
 # default
 .SHELLFLAGS := -c
+# environment
+WAYLAND_DISPLAY = wayland-0
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # makefile (from 'Makefile', line 1)
 MAKEFILE_LIST := Makefile
+# environment
+CONDA_SHLVL = 1
 # automatic
 @F = $(notdir $@)
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
+# environment
+CONDA_PYTHON_EXE = /home/juwonpee/miniconda3/bin/python
 # makefile (from 'Makefile', line 4)
 CCFLAGS = -O0 -ggdb -ffreestanding -Wall
 # automatic
@@ -91,6 +101,8 @@ CCFLAGS = -O0 -ggdb -ffreestanding -Wall
 VSCODE_NLS_CONFIG = {"locale":"en","availableLanguages":{}}
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
+# environment
+CONDA_PREFIX = /home/juwonpee/miniconda3
 # makefile
 SHELL = /bin/sh
 # default
@@ -104,7 +116,7 @@ MAKELEVEL := 0
 # default
 MAKE = $(MAKE_COMMAND)
 # environment
-PATH = /home/juwonpee/.vscode-server/bin/30d9c6cd9483b2cc586687151bcbcd635f373630/bin/remote-cli:/home/juwonpee/.local/bin:/home/juwonpee/opt/cross/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/PuTTY/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/dotnet/:/mnt/c/Users/juwon/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/juwon/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/juwon/AppData/Local/GitHubDesktop/bin:/mnt/c/Users/juwon/.dotnet/tools:/snap/bin
+PATH = /home/juwonpee/.vscode-server/bin/30d9c6cd9483b2cc586687151bcbcd635f373630/bin/remote-cli:/home/juwonpee/.local/bin:/home/juwonpee/miniconda3/bin:/home/juwonpee/miniconda3/condabin:/home/juwonpee/opt/cross/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0:/mnt/c/Windows/System32/OpenSSH:/mnt/c/Program Files/PuTTY:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/WireGuard:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0:/mnt/c/WINDOWS/System32/OpenSSH:/mnt/c/Users/juwon/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/juwon/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/juwon/AppData/Local/GitHubDesktop/bin:/mnt/c/Users/juwon/.dotnet/tools:/snap/bin
 # makefile (from 'Makefile', line 3)
 CC_INCLUDE = -Isrc/ -Isrc/include/ -Isrc/kernel -Isrc/driver
 # default
@@ -132,6 +144,8 @@ OBJECTS = $(BOOTLOADER_OBJ) $(C_OBJ)
 # 'override' directive
 GNUMAKEFLAGS := 
 # environment
+CONDA_DEFAULT_ENV = base
+# environment
 LOGNAME = juwonpee
 # environment
 VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/juwon/.vscode/extensions/ms-vscode-remote.remote-wsl-0.66.3
@@ -139,6 +153,8 @@ VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/juwon/.vscode/extensions/ms-vscode-remote
 .DEFAULT_GOAL := all
 # makefile (from 'Makefile', line 17)
 QEMU = qemu-system-i386 -cpu pentium
+# environment
+DISPLAY = :0
 # environment
 USER = juwonpee
 # default
@@ -150,7 +166,11 @@ VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 _ = /home/juwonpee/.vscode-server/bin/30d9c6cd9483b2cc586687151bcbcd635f373630/node
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-c45908a2-2db3-406e-b01b-71bb0d6a51c7.sock
+XDG_RUNTIME_DIR = /mnt/wslg/runtime-dir
+# environment
+_CE_M = 
+# environment
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-16e32a80-796a-4edd-9895-72ca1ff1cc12.sock
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
@@ -173,8 +193,12 @@ WSL_DISTRO_NAME = Ubuntu-22.04
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink load
 # makefile (from 'Makefile', line 2)
 CC = i686-elf-gcc
+# environment
+CONDA_EXE = /home/juwonpee/miniconda3/bin/conda
+# environment
+_CE_CONDA = 
 # variable set hash-table stats:
-# Load=81/1024=8%, Rehash=0, Collisions=4/128=3%
+# Load=93/1024=9%, Rehash=0, Collisions=4/140=3%
 
 # Pattern-specific Variable Values
 
@@ -182,18 +206,18 @@ CC = i686-elf-gcc
 
 # Directories
 
-# src/include (device 2064, inode 84705): 11 files, no impossibilities.
-# src/bootloader (device 2064, inode 84686): 4 files, no impossibilities.
-# src/kernel (device 2064, inode 84713): 19 files, no impossibilities.
-# . (device 2064, inode 84626): 9 files, no impossibilities.
-# src/driver (device 2064, inode 84688): 26 files, no impossibilities.
+# src/include (device 65, inode -5609523310868029530): 9 files, no impossibilities.
+# src/bootloader (device 65, inode -4385958155885615506): 3 files, no impossibilities.
+# src/kernel (device 65, inode -4911321426024363582): 13 files, no impossibilities.
+# . (device 65, inode -8582016905876914042): 9 files, no impossibilities.
+# src/driver (device 65, inode -2637029728876975606): 14 files, no impossibilities.
 
-# 69 files, no impossibilities in 5 directories.
+# 48 files, no impossibilities in 5 directories.
 
 # Implicit Rules
 
 %.o: %.c
-#  recipe to execute (from 'Makefile', line 37):
+#  recipe to execute (from 'Makefile', line 39):
 	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS)
 
 # 1 implicit rules, 0 (0.0%) terminal.
@@ -203,16 +227,18 @@ check_multiboot:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 44):
+#  recipe to execute (from 'Makefile', line 42):
 	grub-file --is-x86-multiboot2 $(OUTPUT)
 
-binary: kernel clear
-#  Implicit rule search has been done.
+binary: bootloader src/driver/apic.o src/driver/ata.o src/driver/io.o src/driver/pit.o src/driver/print.o src/driver/vfs.o src/include/math.o src/include/string.o src/kernel/acpi.o src/kernel/interrupt.o src/kernel/kernel_init.o src/kernel/memory.o src/kernel/panic.o src/kernel/sched.o
+#  Implicit rule search has not been done.
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/10=0%
+#  recipe to execute (from 'Makefile', line 23):
+	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
 
 # Not a target:
 src/driver/ata.o:
@@ -220,29 +246,29 @@ src/driver/ata.o:
 #  Modification time never checked.
 #  File has not been updated.
 
-# Not a target:
-Makefile:
-#  Implicit rule search has been done.
-#  Last modified 2022-06-20 18:06:28.305191263
-#  File has been updated.
-#  Successfully updated.
-
-run_debug:
+debug:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 55):
+#  recipe to execute (from 'Makefile', line 51):
 	$(QEMU) \
 		-m 128M -M q35 -cpu pentium3 -m 1G\
-		-hda $(OUTPUT_IMAGE) \
+		-hda $(OUTPUT_IMAGE)\
 		-nographic \
 		-S -s
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-07-02 18:33:57.3076287
+#  File has been updated.
+#  Successfully updated.
 
 clean:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 30):
+#  recipe to execute (from 'Makefile', line 29):
 	find . -name "*.o" | xargs -r rm 
 
 # Not a target:
@@ -259,6 +285,7 @@ src/include/math.o:
 
 # Not a target:
 src/driver/io.o:
+ 
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -275,28 +302,12 @@ src/driver/pit.o:
 #  Modification time never checked.
 #  File has not been updated.
 
-kernel: bootloader src/driver/ahci.o src/driver/apic.o src/driver/ata.o src/driver/io.o src/driver/pci.o src/driver/pit.o src/driver/print.o src/driver/vfs.o src/include/math.o src/include/string.o src/kernel/acpi.o src/kernel/interrupt.o src/kernel/kernel_init.o src/kernel/memory.o src/kernel/panic.o src/kernel/sched.o
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has been updated.
-#  Needs to be updated (-q is set).
-# variable set hash-table stats:
-# Load=0/32=0%, Rehash=0, Collisions=0/10=0%
-#  recipe to execute (from 'Makefile', line 27):
-	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
-
 src/kernel/interrupt.o: src/kernel/interrupt.c
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 40):
+#  recipe to execute (from 'Makefile', line 37):
 	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS) -mgeneral-regs-only
-
-# Not a target:
-clear:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
 
 # Not a target:
 src/driver/apic.o:
@@ -309,7 +320,6 @@ src/kernel/interrupt.c:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
- 
 
 # Not a target:
 .DEFAULT:
@@ -317,25 +327,25 @@ src/kernel/interrupt.c:
 #  Modification time never checked.
 #  File has not been updated.
 
-all: binary check_multiboot image clear
+all: image
 #  Command line target.
-#  Implicit rule search has been done.
+#  Implicit rule search has not been done.
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/10=0%
+#  recipe to execute (from 'Makefile', line 20):
+	make clean
 
 run:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 47):
+#  recipe to execute (from 'Makefile', line 45):
 	$(QEMU) \
 		-m 128M -M q35 -cpu pentium3 -m 1G\
-		-drive id=disk,file=$(OUTPUT_IMAGE),if=none \
-		-device ahci,id=ahci \
-		-device ide-hd,drive=disk,bus=ahci.0
+		-hda $(OUTPUT_IMAGE)\
 		-nographic 
 
 # Not a target:
@@ -344,11 +354,15 @@ src/driver/vfs.o:
 #  Modification time never checked.
 #  File has not been updated.
 
-image: check_multiboot
+image: binary
 #  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 33):
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/10=0%
+#  recipe to execute (from 'Makefile', line 32):
+	make check_multiboot
 	grub-mkrescue --modules="normal part_msdos ext2 multiboot multiboot2" -o $(OUTPUT_IMAGE) build/isodir
 
 # Not a target:
@@ -371,12 +385,6 @@ src/include/string.o:
 
 # Not a target:
 src/kernel/panic.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-# Not a target:
-src/driver/pci.o:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -405,14 +413,8 @@ bootloader:
 # | := 
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=2/18=11%
-#  recipe to execute (from 'Makefile', line 24):
+#  recipe to execute (from 'Makefile', line 26):
 	$(CC) $(CC_INCLUDE) -g -c $(BOOTLOADER_SOURCE) -o $(BOOTLOADER_OBJ)
-
-# Not a target:
-src/driver/ahci.o:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
 
 # Not a target:
 .SUFFIXES:
@@ -427,19 +429,19 @@ src/kernel/sched.o:
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=30/1024=3%, Rehash=0, Collisions=1/72=1%
+# Load=26/1024=3%, Rehash=0, Collisions=1/59=2%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 98 / storage = 1003 B / avg = 10 B
-# current buf: size = 8162 B / used = 1003 B / count = 98 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 73 / storage = 787 B / avg = 10 B
+# current buf: size = 8162 B / used = 787 B / count = 73 / avg = 10 B
 
-# strcache performance: lookups = 130 / hit rate = 24%
+# strcache performance: lookups = 100 / hit rate = 27%
 # hash-table stats:
-# Load=98/8192=1%, Rehash=0, Collisions=2/130=2%
-# Finished Make data base on Mon Jun 20 18:06:33 2022
+# Load=73/8192=1%, Rehash=0, Collisions=1/100=1%
+# Finished Make data base on Wed Jul  6 23:37:30 2022
 
  

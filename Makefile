@@ -16,44 +16,40 @@ OUTPUT_IMAGE = build/miniOS.iso
 
 QEMU = qemu-system-i386 -cpu pentium
 
-all: binary check_multiboot image clear
+all: image
+	make clean
 
-binary: kernel clear
+binary: bootloader $(C_OBJ)
+	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
 
 bootloader:
 	$(CC) $(CC_INCLUDE) -g -c $(BOOTLOADER_SOURCE) -o $(BOOTLOADER_OBJ)
 
-kernel: bootloader $(C_OBJ)
-	$(CC) -T src/linker.ld -o $(OUTPUT) $(OBJECTS) $(LDFLAGS)
-
 clean:
 	find . -name "*.o" | xargs -r rm 
 
-image: check_multiboot
+image: binary
+	make check_multiboot
 	grub-mkrescue --modules="normal part_msdos ext2 multiboot multiboot2" -o $(OUTPUT_IMAGE) build/isodir
 
-
-%.o: %.c
-	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS)
 # special compiler command for interrupt.c, 80387 instructions not allowed in interrupt functions
 $(SRC_DIR)/kernel/interrupt.o: $(SRC_DIR)/kernel/interrupt.c
 	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS) -mgeneral-regs-only
+%.o: %.c
+	$(CC) $(CC_INCLUDE) -c $< -o $@ $(CCFLAGS)
 
-
-check_multiboot:
+check_multiboot: 
 	grub-file --is-x86-multiboot2 $(OUTPUT)
 
 run:
 	$(QEMU) \
 		-m 128M -M q35 -cpu pentium3 -m 1G\
-		-drive id=disk,file=$(OUTPUT_IMAGE),if=none \
-		-device ahci,id=ahci \
-		-device ide-hd,drive=disk,bus=ahci.0
+		-hda $(OUTPUT_IMAGE)\
 		-nographic 
 
-run_debug:	
+debug:
 	$(QEMU) \
 		-m 128M -M q35 -cpu pentium3 -m 1G\
-		-hda $(OUTPUT_IMAGE) \
+		-hda $(OUTPUT_IMAGE)\
 		-nographic \
 		-S -s

@@ -16,11 +16,6 @@
 
 #include "vfs.h"
 
-bool vfs_init(pci_device_header_t* ahci_device_address) {
-    if (ahci_init(ahci_device_address)) {
-        if (ata_init()) {
-            return true;
-        }
-    }
+bool vfs_init() {
     return false;
 }

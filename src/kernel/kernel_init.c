@@ -24,10 +24,8 @@
 #include "string.h"
 #include "panic.h"
 #include "interrupt.h"
-#include "pci.h"
 #include "multiboot2.h"
 #include "acpi.h"
-#include "ahci.h"
 #include "vfs.h"
 //#include "ata.h"
 
@@ -184,16 +182,6 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
-
-	printf("Initializing PCI Devices...\n");
-	if (!pci_init(acpi_master_table.MCFG, &ahci_device)) {
-		printf("OK\n");
-	}
-	else {
-		panic("Error Initializing PCI Devices\n");
-	}
-	printf("\n");
-
 
 	// Initializing file system
 	printf("Initializing Virtual File System...\n");

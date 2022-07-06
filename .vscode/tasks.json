@@ -11,6 +11,21 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
+        },
+        {
+            "type": "cppbuild",
+            "label": "build",
+            "command": "make",
+            "args": [
+                "all",
+                "-j12"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ],
     "version": "2.0.0"

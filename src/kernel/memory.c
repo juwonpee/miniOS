@@ -60,6 +60,14 @@ void memcpy(void* dest, void* src, uintptr_t size) {
 }
 
 void* kmalloc(uintptr_t size) {
+	if (size == 0) return nullptr;
+
+	// Align size too 4 bytes
+	if (size % 4) {
+		size = size & 0xFFFFFFFC;
+		size += 4;
+	}
+
 	// Kernel critical section
 	scheduler_kernel_uninterruptible();
 
@@ -76,16 +84,22 @@ void* kmalloc(uintptr_t size) {
 	memoryMallocNode_t* prevNode;
 	memoryMallocNode_t* nextNode;
 	while ((uintptr_t)node + sizeof(memoryMallocNode_t) + size < MEM_USR_START) {	// While node is within memory boundaries
-		if (node->next != nullptr) { // If not empty node
+		if (node->next != nullptr) { // If not last node
 			// Check space between current and next node
-			if ((uintptr_t)node->next - (uintptr_t)node - size - sizeof(memoryMallocNode_t) > 0) {	// If space is big enough
+			if ((intptr_t)((uintptr_t)node->next - (uintptr_t)node - node->size - size - sizeof(memoryMallocNode_t)) >= 0) {	// If space is big enough
 				// assign space inbetween node
 				prevNode = node;
 				nextNode = node->next;
-				node = node + sizeof(memoryMallocNode_t) + size;
+				node = (memoryMallocNode_t*)((uintptr_t)node + node->size);
 				break;
 			}
 			node = node->next;
+		}
+		else {	// If last node
+			prevNode = node;
+			nextNode = nullptr;
+			node = (memoryMallocNode_t*)((uintptr_t)node + node->size);
+			break;
 		}
 	}
 
@@ -100,14 +114,28 @@ void* kmalloc(uintptr_t size) {
 	// End critical section
 	scheduler_kernel_interruptible();
 
+	// Zero out data section
+	uintptr_t* data = (uintptr_t*)&node->data;
+	for (uintptr_t index = 0; index < (node->size - sizeof(memoryMallocNode_t))/4; index++) {
+		data[index] = 0;
+	}
+
 	return &node->data;
 }
 
 void* kmalloc_align(uintptr_t size, uintptr_t align) {
+	if (size == 0) return nullptr;
+
+	// Align size too 4 bytes
+	if (size % sizeof(uintptr_t)) {
+		size = size & 0xFFFFFFFC;
+		size += sizeof(uintptr_t);
+	}
+
 	// Kernel critical section
 	scheduler_kernel_uninterruptible();
 
-		// Check for boundary sizes
+	// Check for boundary sizes
 	if (size > MEM_KERNEL_SIZE) {
 		panic("Malloc Error: Memory allocation too large");
 	}
@@ -120,16 +148,23 @@ void* kmalloc_align(uintptr_t size, uintptr_t align) {
 	memoryMallocNode_t* prevNode;
 	memoryMallocNode_t* nextNode;
 	while ((uintptr_t)node + sizeof(memoryMallocNode_t) + size < MEM_USR_START) {	// While node is within memory boundaries
-		if (node->next != nullptr) { // If not empty node
+		if (node->next != nullptr) { // If not last node
 			// Check space between current and next node
-			if ((uintptr_t)node->next - (uintptr_t)node - size - sizeof(memoryMallocNode_t) > 0) {	// If space is big enough
+			
+			if ((intptr_t)((uintptr_t)node->next - (uintptr_t)node - node->size - size - sizeof(memoryMallocNode_t)) >= 0) {	// If space is big enough
 				// assign space inbetween node
 				prevNode = node;
 				nextNode = node->next;
-				node = node + sizeof(memoryMallocNode_t) + size;
+				node = (memoryMallocNode_t*)((uintptr_t)node + node->size);
 				break;
 			}
 			node = node->next;
+		}
+		else {	// If last node
+			prevNode = node;
+			nextNode = nullptr;
+			node = (memoryMallocNode_t*)((uintptr_t)node + node->size);
+			break;
 		}
 	}
 
@@ -141,8 +176,16 @@ void* kmalloc_align(uintptr_t size, uintptr_t align) {
 	node->prev = prevNode;
 	node->next = nextNode;
 
-	// End critical seciton
+	// End critical section
 	scheduler_kernel_interruptible();
+
+	// Zero out data section
+	uintptr_t* data = (uintptr_t*)&node->data;
+	for (uintptr_t index = 0; index < (node->size - sizeof(memoryMallocNode_t))/4; index++) {
+		data[index] = 0;
+	}
+
+	return &node->data;
 }
 
 
@@ -161,12 +204,113 @@ void kfree(void* freeNode) {
 	node->next = nullptr;
 }
 
+void memory_direct_map(void* virtualAddress, void* physicalAddress) {
+
+}
+ 
+void memory_kernel_page_alloc(void* address) {
+	// Kernel critical section
+	scheduler_kernel_uninterruptible();
+
+	int pageDirectoryIndex = (uintptr_t)address >> 22;
+
+	// kernel page descriptors
+	processMemoryDescriptor[pageDirectoryIndex].references = 1;
+	processMemoryDescriptor[pageDirectoryIndex].pid = SCHED_PID_KERNEL;
+	processMemoryDescriptor[pageDirectoryIndex].pageDirectory = &pageDirectory[pageDirectoryIndex];
+
+	// Page directories
+	pageDirectory[pageDirectoryIndex].present = true;
+	pageDirectory[pageDirectoryIndex].present = true;
+	pageDirectory[pageDirectoryIndex].readWrite = true;
+	pageDirectory[pageDirectoryIndex].userMode = false;
+	pageDirectory[pageDirectoryIndex].pageWriteThrough = false;
+	pageDirectory[pageDirectoryIndex].pageCacheDisable = false;
+	pageDirectory[pageDirectoryIndex].size = true;
+	pageDirectory[pageDirectoryIndex].address = (uint32_t)&pageTable[pageDirectoryIndex] >> 12;
+	for (int pageTableIndex = 0; pageTableIndex < 1024; pageTableIndex++) {
+		pageTable[pageDirectoryIndex][pageTableIndex].present = true;
+		pageTable[pageDirectoryIndex][pageTableIndex].readWrite = true;
+		pageTable[pageDirectoryIndex][pageTableIndex].userMode = false;
+		pageTable[pageDirectoryIndex][pageTableIndex].pageWriteThrough = false;
+		pageTable[pageDirectoryIndex][pageTableIndex].pageCacheDisable = false;
+		pageTable[pageDirectoryIndex][pageTableIndex].PAT = false;
+		pageTable[pageDirectoryIndex][pageTableIndex].global = false;
+		pageTable[pageDirectoryIndex][pageTableIndex].address = (uint32_t)(pageDirectoryIndex * 0x400000 + pageTableIndex * 0x1000) >> 12;
+	}
+
+	// Kernel critical section end
+	scheduler_kernel_interruptible();
+}
+
+void memory_kernel_page_free(void* address) {
+	// Kernel critical section
+	scheduler_kernel_uninterruptible();
+
+	int pageDirectoryIndex = (uintptr_t)address >> 22;
+
+	// kernel page descriptors
+	processMemoryDescriptor[pageDirectoryIndex].references = 1;
+	for (int pageTableIndex = 0; pageTableIndex < 1024; pageTableIndex++) {
+		pageTable[pageDirectoryIndex][pageTableIndex].present = false;
+	}
+
+	// Page directories
+	pageDirectory[pageDirectoryIndex].present = 0;
+
+	// Kernel critical section end
+	scheduler_kernel_interruptible();
+}
+
+bool memory_kernel_check_exists(void* address) {
+	// Kernel critical section
+	scheduler_kernel_uninterruptible();
+
+	int pageDirectoryIndex = (uintptr_t)address >> 22;
+
+	bool returnValue = processMemoryDescriptor[pageDirectoryIndex].references;
+	
+	// Kernel critical section end
+	scheduler_kernel_interruptible();
+
+	return !returnValue;
+}
+
+void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* address, void* instruction) {
+	char tempString[64];
+	if (pageFault_error.U == 0) {
+		if (pageFault_error.P == 0)	{
+			if (pageFault_error.W == 0) {
+				println("Kernel panic! Invalid kernel memory read access");
+				println("Fault occured at");
+				printf("Instruction: ");
+				println(itoa((uintptr_t)instruction, tempString, 16));
+				printf("Address: ");
+				println(itoa((uintptr_t)address, tempString, 16));
+			}
+			else {
+				println("Kernel panic! Invalid kernel memory write access");
+				println("Fault occured at");
+				printf("Instruction: ");
+				println(itoa((uintptr_t)instruction, tempString, 16));
+				printf("Address: ");
+				println(itoa((uintptr_t)address, tempString, 16));
+			}
+
+		}
+		panic("");
+	}
+}
+
 bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* heapStart) {
 	// set heap variables
 	// heap_start aligned to page directory boundaries (4MB) by linker
-	int heapStartPageDirectory = (uintptr_t)heapStart >> 24; //
-	int userStartPageDirectory = MEM_USR_START >> 24;
+	int heapStartPageDirectory = (uintptr_t)heapStart >> 22; //
+	int userStartPageDirectory = MEM_USR_START >> 22;
 	int usableEndPageDirectory = ((multiboot_meminfo->mem_lower * 1024 + multiboot_meminfo->mem_upper * 1024) >> 24) - 1; // multiboot_meminfo shows memory in counts of KB
+	
+	// Check memory size
+	if (userStartPageDirectory > usableEndPageDirectory) panic("Too little memory");
 
 	// Init CR3 register
 	pageDirectoryCR3.pageWriteThrough = false;
@@ -175,7 +319,6 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
 
 	//Init page directory & page tables
 	for (int pageDirectoryIndex = 0; pageDirectoryIndex < 1024; pageDirectoryIndex++) {
-		if (pageDirectoryIndex >= MEM_USR_START >> 24) panic("Too little memory");
 
 		if (pageDirectoryIndex < userStartPageDirectory) {	// Kernel mode
 			// Init memory descriptors
@@ -223,41 +366,19 @@ bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* he
 	// Other misc memory tasks
 
 	// Clear kernel heap area to 0
-	for (uintptr_t i = heapStart; i < usableEndPageDirectory << 24; heapStart++) {
-		*(uintptr_t*)i = 0;
+	for (uintptr_t* i = (uintptr_t*)(heapStartPageDirectory << 22); (uintptr_t)i < userStartPageDirectory << 22; i++) {
+		*i = 0;
 	}
 	
 	// Initialize kmalloc variables
 
 	firstNode = (memoryMallocNode_t*)heapStart;
 	firstNode->size = sizeof(memoryMallocNode_t);
-	firstNode->prev = nullptr;
+	firstNode->prev = firstNode;
 	firstNode->next = nullptr;
 
 
-// 	void* kernel_start_page = (void*)(multiboot_meminfo->mem_lower * 1024);
-// 	void* heap_start_page = heapStart;
-// 	void* heap_end_page = (void*) (multiboot_meminfo->mem_upper * 1024 + (uint32_t)kernel_start_page);
-// 	heap_start = heap_start_page;
-// 	heap_end = heap_end_page - 1;                                                               // Leave last page free cuz lazy to do all the checking
-
-// 	// Misc stuff before initializing paging
-// 	for (uintptr_t i = 0; i < 65536; i++) {
-// 		process_memory_descriptor[SCHED_PID_KERNEL].memory_page_count = 0;
-// 	}
-
-// 	// Clear multiboot2 info
-// 	println("Checking & clearing memory");
-// 	for (void* startPage = heap_start_page; (uintptr_t)startPage < (uintptr_t)heap_end_page + 0x1000; startPage = (void*)((uintptr_t)startPage + 0x400000)) {	// Leave several last pages as they contain acpi tables
-// 		char tempString[64];
-// 		printsn(itoa((uintptr_t)startPage, tempString, 16));
-// 		memset(startPage, 0, 0x400000);
-// 	}
-// 	println("");
-// 	//memset(heap_start_page, 0, (uintptr_t)heap_end_page + 0x1000 - (uintptr_t) heap_start_page);    
-	// set CR3 register
-	// Initialize page descriptor tables
-	
+	return false;
 }
 
 

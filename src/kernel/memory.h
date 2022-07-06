@@ -17,6 +17,7 @@
 #pragma once
 
 #include <stdalign.h>
+#include <stdint.h>
 #include "types.h"
 #include "multiboot2.h"
 #include "print.h"
@@ -115,13 +116,14 @@ void* kmalloc_align(uintptr_t size, uintptr_t align);
 
 void memory_direct_map(void* virtualAddress, void* physicalAddress);
 
-
+// Pages will be allocated in 4MB chunks
 void memory_kernel_page_alloc(void* address);
 
+// Pages will be freed in 4MB chunks
 void memory_kernel_page_free(void* address);
 
-void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* address, void* instruction);
-
 bool memory_kernel_check_exists(void* address);
+
+void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* address, void* instruction);
 
 bool memory_init(struct multiboot_tag_basic_meminfo* multiboot_meminfo, void* heapStart);
