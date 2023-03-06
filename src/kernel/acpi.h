@@ -16,12 +16,24 @@
 
 #pragma once
 
-#include "types.h"
+
 #include "multiboot2.h"
 #include "print.h"
 #include "memory.h"
 #include "apic.h"
 
+// ACPI TYPES
+typedef struct acpi_sdt_header_t {
+	uint8_t signature[4];
+	uint32_t length;
+	uint8_t revision;
+	uint8_t checksum;
+	uint8_t OEMID[6];
+	uint8_t OEMTableID[8];
+	uint32_t OEMRevision;
+	uint32_t creatorID;
+	uint32_t creatorRevision;
+} __attribute__ ((packed)) acpi_sdt_header_t;
 
 typedef struct acpi_rsdp_descriptor_t {
 	uint8_t signature[8];
@@ -60,6 +72,13 @@ typedef struct acpi_MADT_t {
 	acpi_sdt_header_t header;
 	apic_descriptor_t descriptor;
 } __attribute ((packed)) acpi_MADT_t;
+
+// ACPI TYPES
+typedef struct acpi_MCFG_t {
+	acpi_sdt_header_t header;
+	uint64_t reserved;
+	pci_configuration_space_t configurationSpace[64];
+} __attribute__ ((packed)) acpi_MCFG_t;
 
 typedef struct acpi_master_table_t {
 	bool OK;

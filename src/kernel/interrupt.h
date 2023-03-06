@@ -71,9 +71,9 @@ EAX=1:
 
 #pragma once
 
-#include <stdalign.h>
+#include "stdalign.h"
 
-#include "types.h"
+
 #include "print.h"
 #include "panic.h"
 #include "io.h"

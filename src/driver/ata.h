@@ -16,11 +16,12 @@
 
 #pragma once
 
-#include "types.h"
+
 #include "io.h"
 #include "print.h"
 #include "pit.h"
 #include "interrupt.h"
+#include "stdbool.h"
 
 #define ATA_PRIMARY_IRQ						15
 #define ATA_SECONDARY_IRQ					14
@@ -95,6 +96,16 @@
 
 
 bool ata_init();
+
+// ATA TYPES
+typedef enum ata_error_t {
+	normal, error, AMNF, TKZNF, ABRT, MCR, IDNF, MC, UNC, BBK
+} ata_error_t ;
+
+typedef struct ata_sector_data_t {
+	uint8_t data[512];
+} ata_sector_data_t;
+
 
 // Primary
 ata_sector_data_t ata_primary_read(uint64_t lba);

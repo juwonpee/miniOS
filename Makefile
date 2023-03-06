@@ -14,7 +14,8 @@ OBJECTS = $(BOOTLOADER_OBJ) $(C_OBJ)
 OUTPUT = build/isodir/boot/miniOS.bin
 OUTPUT_IMAGE = build/miniOS.iso
 
-QEMU = qemu-system-i386 -cpu pentium
+QEMU = qemu-system-i386
+QEMU_ARGS = -M q35 -cpu pentium3 -m 1G # Use Q35 Type to defualt to ahci drive interface
 
 all: image
 	make clean
@@ -41,15 +42,13 @@ $(SRC_DIR)/kernel/interrupt.o: $(SRC_DIR)/kernel/interrupt.c
 check_multiboot: 
 	grub-file --is-x86-multiboot2 $(OUTPUT)
 
-run:
-	$(QEMU) \
-		-m 128M -M q35 -cpu pentium3 -m 1G\
+run: all
+	$(QEMU) $(QEMU_ARGS) \
 		-hda $(OUTPUT_IMAGE)\
 		-nographic 
 
-debug:
-	$(QEMU) \
-		-m 128M -M q35 -cpu pentium3 -m 1G\
+debug: all
+	$(QEMU) $(QEMU_ARGS) \
 		-hda $(OUTPUT_IMAGE)\
 		-nographic \
 		-S -s

@@ -17,7 +17,7 @@
 
 #include <cpuid.h>
 
-#include "types.h"
+
 #include "io.h"
 #include "print.h"
 #include "memory.h"
@@ -27,6 +27,7 @@
 #include "multiboot2.h"
 #include "acpi.h"
 #include "vfs.h"
+#include "pci.h"
 //#include "ata.h"
 
 struct multiboot_tag_header {
@@ -39,7 +40,7 @@ struct multiboot_tag_basic_meminfo* multiboot_meminfo;
 struct multiboot_tag_old_acpi* multiboot_acpi;
 acpi_master_table_t acpi_master_table;
 
-pci_device_header_t ahci_device;
+
 
 bool bootInfo(uint32_t magic, struct multiboot_tag_header* addr) {
 	char tempString[64];
@@ -182,15 +183,6 @@ void kernel_init(uint32_t magic, struct multiboot_tag_header* addr, void* heapSt
 /*-----------------------------------------------------------------------------------------------*/
 /*                                         Virtual Memory                                        */
 /*-----------------------------------------------------------------------------------------------*/
-
-	// Initializing file system
-	printf("Initializing Virtual File System...\n");
-	if (!vfs_init(&ahci_device)) {
-		printf("OK\n");
-	}
-	else {
-		panic("Error Initializing PCI Devices\n");
-	}
 
 
 	// Kernel finish init

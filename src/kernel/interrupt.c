@@ -471,8 +471,6 @@ __attribute__ ((interrupt)) void interrupt_isr014(IDT_interruptFrame_t* interrup
 
 	// Call page fault handler
 	memory_interrupt_handler(pageFault_error, (void*)cr2, interruptFrame);
-
-
 	interrupt_Counter[14] += 1;
 }
 
@@ -584,6 +582,7 @@ __attribute__ ((interrupt)) void interrupt_irq032(IDT_interruptFrame_t* interrup
 
 	// time keeping
 	pit_increment_time();
+	//printf("Interrupt: 32, PIC");
 
 	
 	interrupt_pic_end(32);

@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include "types.h"
+
 #include "interrupt.h"
 #include "memory.h"
+#include "stdint-gcc.h"
 
 #define SCHED_PID_KERNEL      0
 // Kernel threads are defined between 0x0001 ~ 0x0FFF
@@ -30,6 +31,7 @@ typedef struct memoryPageDirectoryCR3_t memoryPageDirectoryCR3_t;
 typedef struct memoryPageDirectory_t memoryPageDirectory_t;
 typedef struct memoryPageTable_t memoryPageTable_t;
 
+typedef uint16_t scheduler_pid_t;
 
 typedef enum scheduler_status_t {
 	interruptible,

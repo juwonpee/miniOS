@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <stdalign.h>
-#include <stdint.h>
-#include "types.h"
+#include "stdalign.h"
+#include "stdint-gcc.h"
+
 #include "multiboot2.h"
 #include "print.h"
 #include "string.h"
@@ -87,13 +87,6 @@ typedef struct memoryPageTable_t {
 	};
 } __attribute__ ((packed)) memoryPageTable_t;
 
-
-typedef struct memoryProcessMemoryDescriptor_t {
-	uintptr_t references;													// Number of process references to page directory to determine if page is being used
-	scheduler_pid_t pid;
-	memoryPageDirectory_t* pageDirectory;
-} memoryProcessMemoryDescriptor_t;
-
 typedef struct memoryMallocNode_t {
 	uintptr_t size;															// Size includes the node
 	struct memoryMallocNode_t* prev;
@@ -101,9 +94,23 @@ typedef struct memoryMallocNode_t {
 	uintptr_t data[];
 } memoryMallocNode_t;
 
+// INTERRUPT TYPES
+typedef struct IDT_pageFault_error_t {
+	union {
+		uint32_t data;
+		struct {
+			uint32_t P:1;																		// Present				When set, the page fault was caused by a page-protection violation. When not set, it was caused by a non-present page.
+			uint32_t W:1;																		// Write				When set, the page fault was caused by a write access. When not set, it was caused by a read access.
+			uint32_t U:1;																		// User					When set, the page fault was caused while CPL = 3. This does not necessarily mean that the page fault was a privilege violation.
+			uint32_t R:1;																		// Reserved write		When set, one or more page directory entries contain reserved bits which are set to 1. This only applies when the PSE or PAE flags in CR4 are set to 1.
+			uint32_t reserved:28;
+		};
+	};
+} __attribute__ ((packed)) IDT_pageFault_error_t;
 
 
-void memset(void* address, char value, uintptr_t size);
+// Set range of 
+void memset_char(void* address, char value, uintptr_t size);
 
 void memcpy(void* dest, void* src, uintptr_t size);
 
@@ -113,16 +120,6 @@ void kfree(void* address);
 
 // align parameter is a bit mask for the align size, 0x10: align at 16 byte boundaries, 0x1000: align at 4096 byte boundaries
 void* kmalloc_align(uintptr_t size, uintptr_t align);
-
-void memory_direct_map(void* virtualAddress, void* physicalAddress);
-
-// Pages will be allocated in 4MB chunks
-void memory_kernel_page_alloc(void* address);
-
-// Pages will be freed in 4MB chunks
-void memory_kernel_page_free(void* address);
-
-bool memory_kernel_check_exists(void* address);
 
 void memory_interrupt_handler(IDT_pageFault_error_t pageFault_error, void* address, void* instruction);
 
