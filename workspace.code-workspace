@@ -24,7 +24,7 @@
 			"*.tcc": "c",
 			"cinttypes": "c",
 			"cstdbool": "c",
-			"cstdint": "c",
+			"stdint-gcc": "c",
 			"typeinfo": "c",
 			"print.h": "c",
 			"vga_text_print.h": "c",

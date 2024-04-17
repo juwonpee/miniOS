@@ -15,7 +15,7 @@
 */
 
 #define ASM_FILE        1
-#include "multiboot2.h"
+#include "multiboot2.hpp"
 
 /*  C symbol format. HAVE_ASM_USCORE is defined by configure. */
 #ifdef HAVE_ASM_USCORE
@@ -44,7 +44,7 @@ multiboot2_header_end:
 .section .bss
 .align 16
 stack_bottom:
-.skip 0x1000000 # 16 MiB
+.skip 0x4000000 # 64 MiB stack size
 stack_top:
  
 
@@ -61,7 +61,7 @@ _start:
 	push	%ecx
 	push 	%ebx						/* Pointer to multiboot information structure */
 	push 	%eax						/* MAGIC value */
-	call 	kernel_init
+	call 	kernelInit
 	cli
 	hlt
 	
